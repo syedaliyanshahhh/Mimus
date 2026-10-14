@@ -4,6 +4,8 @@ An AI chief of staff for founder-led businesses. It connects a founder's email, 
 
 This is **V1, first stage: web app only**. See [`PLAN.md`](./PLAN.md) for the full build plan and milestone status, and [`AGENTS.md`](./AGENTS.md) for the development practices this repo follows.
 
+The repo moved here from `iwhozaifa/mimus` on 2026-10-14 with its full commit and branch history. The pull requests merged before the move (#1–#66), with their descriptions and CI results, are still on [the original repo](https://github.com/iwhozaifa/mimus/pulls?q=is%3Apr).
+
 ## Tech stack
 
 - **Framework:** Next.js 16 (App Router, Turbopack, Cache Components) + TypeScript, React 19
@@ -189,7 +191,7 @@ The app deploys to Vercel as a standard Next.js project against the `mimus-stagi
 **Steps (repo owner):**
 
 1. **Database.** Apply any new migrations to `mimus-staging`: `npx supabase db push --linked`. Never run `db reset` against it.
-2. **Vercel project.** [vercel.com/new](https://vercel.com/new) → import `iwhozaifa/mimus`. Framework preset: Next.js (detected). Leave Fluid Compute on.
+2. **Vercel project.** [vercel.com/new](https://vercel.com/new) → import `syedaliyanshahhh/Mimus`. Framework preset: Next.js (detected). Leave Fluid Compute on.
 3. **Environment variables** (Production), set _before_ the first build, because `NEXT_PUBLIC_*` values are baked in at build time:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`: from the `mimus-staging` project's API settings.
    - `TOKEN_ENCRYPTION_KEY` (`openssl rand -base64 32`; keep it, because rows encrypted with it can't be read without it) and `CRON_SECRET` (`openssl rand -hex 32`).
