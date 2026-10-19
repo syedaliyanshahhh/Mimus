@@ -4,13 +4,13 @@
 
 > **Draft — have this reviewed by a qualified lawyer before publishing.** Every `[TODO: …]` must be filled in or removed first.
 
-This Privacy Policy explains what personal information Mimus collects, why, who it goes to, how long we keep it, and the choices you have. It covers the Mimus web app at [TODO: domain, e.g. https://mimus.app] ("Mimus", "the Service").
+This Privacy Policy explains what personal information Mimus collects, why, who it goes to, how long we keep it, and the choices you have. It covers the Mimus web app at https://getmimus.io ("Mimus", "the Service").
 
 ## 1. Who we are
 
-Mimus is provided by [TODO: legal entity name], based in Pakistan ("we", "us").
+Mimus is provided by EVG (USA) Management Inc., doing business as Mimus.io and AI Teammates, a company based in the United States ("we", "us").
 
-- Privacy contact: [TODO: privacy email address]
+- Privacy contact: tech@youraiteammates.com
 - Postal address: [TODO: registered address]
 
 ### Our role
@@ -18,7 +18,7 @@ Mimus is provided by [TODO: legal entity name], based in Pakistan ("we", "us").
 Mimus is a business tool that a company ("your organization") sets up for its team.
 
 - **Account and billing information.** For your Mimus account, workspace and billing details, we are the data controller.
-- **Workspace content.** For the email, calendar, Slack and Calendly data that members connect, we process it on behalf of your organization, which acts as the controller. We do so under our agreement with them [TODO: link the customer agreement / Data Processing Agreement]. If you're a member of an organization's workspace, contact your organization about its handling of that data. You can also contact us directly and we will help.
+- **Workspace content.** For the email, calendar, Slack and Calendly data that members connect, we process it on behalf of your organization, which acts as the controller. We do so under our agreement with them, including our [Data Processing Agreement](/dpa). If you're a member of an organization's workspace, contact your organization about its handling of that data. You can also contact us directly and we will help.
 
 ## 2. Information we collect
 
@@ -80,7 +80,7 @@ Scheduling replies are written from a fixed template, not composed freely by AI.
 
   It does **not** contain your question or the answer. Workspace Owners can see this log.
 
-- **Service logs:** our hosting and database providers keep standard technical logs (such as IP address, request time and error details) for security and troubleshooting. [TODO: confirm hosting provider log retention once production hosting is set up]
+- **Service logs:** our hosting provider (Vercel) and database provider (Supabase) keep standard technical logs (such as IP address, request time and error details) for security and troubleshooting. [TODO: confirm Vercel and Supabase log retention for the production plans]
 
 ### Information we do not collect
 
@@ -127,9 +127,9 @@ We use Google user data only to provide and improve these user-facing features. 
   Who can make this change:
   - You can always set your own account back to Private.
   - Setting it to Team or Company requires the Owner or Manager role.
-  - Your workspace's Owners can also change the visibility of any connected account in the workspace, including yours.
+  - Your workspace's Owners can also change the visibility of any connected account in the workspace, including yours. They don't need your approval to do so. This lets your organization's leadership (for example, its CEO) choose to see data that employees connect for work.
 
-  [TODO: decide whether to require the account holder's own approval before anyone else widens visibility. See the verification checklist.]
+  Your organization decides whether to widen visibility, and it is responsible for telling its employees before it does. If you're unsure who in your organization can see your connected data, ask your workspace Owner, or check the visibility shown for each account on the Connections page.
 
 - **With the person you're scheduling with.** A scheduling reply and a meeting invitation go from your own account to the person who asked to meet. They see what any email or invitation from you would show: your name and address, the offered times or your Calendly link, and the meeting details.
 - **With our AI provider, to answer your question.** When you ask Mimus a question, short excerpts of relevant messages and events go to OpenAI to generate the answer: up to 1,500 characters of each email and 500 characters of each event description. See section 5.
@@ -148,7 +148,7 @@ We do not share Google user data with anyone else, except where required by law 
   - to comply with applicable law;
   - in aggregated, anonymized form for internal operations.
 
-[TODO: describe the internal access controls that restrict which staff can access the production database]
+Our staff have no standing access to the production database. Production access is break-glass only: each time, it must be approved, it is limited to a set period, and it is logged. Our development and test environments use synthetic data and sandbox accounts, not your data.
 
 ### Limited Use
 
@@ -185,13 +185,15 @@ We do not use your information for advertising and we do not sell it.
 
 We use these service providers ("processors"). Each receives only what it needs to provide its service to us, under contract:
 
-- **Supabase** stores our database and runs sign-in. It holds all the information described in this policy. [TODO: region]
+- **Supabase** stores our database and runs sign-in. It holds all the information described in this policy. Data is stored in the United States (US East).
 - **OpenAI** generates AI answers. It receives your question and the excerpts described in section 3.
   - We send requests with storage turned off (`store: false`), and OpenAI does not use API data to train its models.
   - [TODO: confirm whether Zero Data Retention is enabled. If not, keep this sentence: "OpenAI may retain API inputs and outputs for up to 30 days to monitor for abuse, then deletes them."]
 - **Resend** delivers sign-in and invitation emails. It receives the recipient's email address and the email contents.
 - **Stripe** processes subscription payments. It receives your organization's billing details. Card details go directly to Stripe.
-- **[TODO: hosting provider, e.g. Vercel]** hosts the web app. It processes requests and technical logs. [TODO: region]
+- **Vercel** hosts the web app. It processes requests and technical logs in the United States.
+
+The current list of these providers, with what each receives and where, is in the subprocessor list of our [Data Processing Agreement](/dpa).
 
 **Services you connect** (Google, Microsoft, Slack and Calendly) are not our processors. We only read data from them with your permission. If you allow sending and booking, we also use your Google or Microsoft account to send the scheduling replies and create the meetings described in section 2. We never send a service your data from other services, except that a scheduling reply can include your Calendly link.
 
@@ -212,8 +214,6 @@ We use these service providers ("processors"). Each receives only what it needs 
 - **Billing records:** kept as long as tax and accounting law requires. [TODO: confirm period]
 - **Backups:** deleted data may remain in our database provider's encrypted backups until they expire. [TODO: confirm backup retention period for the production plan]
 
-[TODO: if a time-based limit on imported data is adopted, e.g. "messages older than N days are deleted", state it here.]
-
 If a workspace Owner removes you from a workspace, the services you connected there stay connected until you delete your account. [TODO: remove this sentence once removal also disconnects the member's services]
 
 ## 7. Security
@@ -221,7 +221,8 @@ If a workspace Owner removes you from a workspace, the services you connected th
 - Data is encrypted in transit (TLS) and at rest by our database provider.
 - Access tokens for connected services are additionally encrypted by Mimus with AES-256-GCM before storage.
 - Who can see what is enforced by row-level security rules inside the database itself, not only by app code. A workspace member's private data can't be returned to anyone else, even by our AI.
-- [TODO: describe staff access controls, and the Google-required security assessment (CASA) once completed]
+- Staff have no standing access to production data. Access is break-glass only: approved, time-limited and logged (section 3). Development and testing use synthetic data and sandbox accounts.
+- [TODO: describe the Google-required security assessment (CASA) once completed]
 
 No system is perfectly secure. If we learn of a breach affecting your information, we will notify you and the relevant authorities as the law requires.
 
@@ -244,7 +245,7 @@ Depending on where you live, you have rights over your personal information:
 - **Revoke Google access** at [myaccount.google.com/permissions](https://myaccount.google.com/permissions).
 - **Delete your account** (section 9).
 
-**To make any other request,** email [TODO: privacy email]. We will respond within 30 days (one month under the GDPR). We may need to verify your identity first.
+**To make any other request,** email tech@youraiteammates.com. We will respond within 30 days (one month under the GDPR). We may need to verify your identity first.
 
 If you're in the EU or UK, you can complain to your local data protection authority. [TODO: add EU/UK representative details if required (GDPR Art. 27 / UK GDPR Art. 27)]
 
@@ -274,17 +275,15 @@ If you're in the EU or UK, you can complain to your local data protection author
 - If you're the only Owner of a workspace that has other members, remove them first, or contact us to transfer ownership. This keeps the team from being left without an Owner.
 - If a workspace you'd delete has an active paid subscription, cancel it first.
 
-**Without signing in:** see [Deleting your Mimus account](/account-deletion), or email [TODO: privacy email] from your account's email address and we will delete it within 30 days.
+**Without signing in:** see [Deleting your Mimus account](/account-deletion), or email tech@youraiteammates.com from your account's email address and we will delete it within 30 days.
 
 ## 10. International transfers
 
-We are based in Pakistan, and our service providers process data in [TODO: regions, e.g. the United States and the EU], so your information may be processed outside your country. Where the GDPR or UK GDPR applies, we rely on adequacy decisions or the European Commission's Standard Contractual Clauses (and the UK Addendum) with our providers. [TODO: confirm with each provider's Data Processing Agreement]
-
-[TODO: verify Pakistan's current data protection law status. The Personal Data Protection Bill had not been enacted as of drafting; update this section if it has been.]
+We are based in the United States, and we and our service providers store and process data in the United States, so your information may be processed outside your country. Where the GDPR or UK GDPR applies, we rely on adequacy decisions (including the EU-U.S. Data Privacy Framework where a provider is certified) or the European Commission's Standard Contractual Clauses (and the UK Addendum) with our providers. [TODO: confirm with each provider's Data Processing Agreement]
 
 ## 11. Children
 
-Mimus is a business tool for people aged [TODO: minimum age, recommended 18] and over. It is not directed at children, and we do not knowingly collect personal information from children under 13 (or under 16 in the EU/UK). If you believe a child has given us personal information, contact [TODO: privacy email] and we will delete it.
+Mimus is a business tool for people aged [TODO: minimum age, recommended 18] and over. It is not directed at children, and we do not knowingly collect personal information from children under 13 (or under 16 in the EU/UK). If you believe a child has given us personal information, contact tech@youraiteammates.com and we will delete it.
 
 ## 12. Changes to this policy
 
@@ -292,4 +291,4 @@ If we make material changes, we will update the effective date above and notify 
 
 ## 13. Contact
 
-Questions or requests about this policy: [TODO: privacy email], [TODO: legal entity name], [TODO: address].
+Questions or requests about this policy: tech@youraiteammates.com, EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates), [TODO: address].

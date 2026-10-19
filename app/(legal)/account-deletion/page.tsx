@@ -54,8 +54,8 @@ export default function AccountDeletionPage() {
 
       <h2 className="mt-4 text-xl font-semibold text-ink">Can&apos;t sign in?</h2>
       <p>
-        Email [TODO: privacy email] from your account&apos;s email address and ask us to delete it.
-        We&apos;ll confirm and delete it within 30 days.
+        Email tech@youraiteammates.com from your account&apos;s email address and ask us to delete
+        it. We&apos;ll confirm and delete it within 30 days.
       </p>
 
       <h2 className="mt-4 text-xl font-semibold text-ink">Only removing Google access</h2>
