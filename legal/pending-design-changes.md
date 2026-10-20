@@ -1,6 +1,8 @@
 # Pending design changes and their legal-page impact
 
 > **Internal note, not a public page.** The Privacy Policy, Terms, DPA and connector schedule describe Mimus **as built today**, because Google's OAuth verification and the CASA assessment check the policy against the live app. The target design below is not built yet. When each item ships, update the listed sections in the same pull request.
+>
+> Where the policies don't match the code as built today, see [feature-policy-gap-audit.md](feature-policy-gap-audit.md).
 
 ## Target design (from the 2026-10-19 decisions)
 
