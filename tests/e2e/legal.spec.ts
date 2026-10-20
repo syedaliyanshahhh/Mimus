@@ -43,6 +43,15 @@ test('the Terms of Service is public', async ({ page }) => {
   await expect(page.getByText(/cannot currently send email/)).toHaveCount(0);
 });
 
+test('the Data Processing Agreement is public and lists subprocessors', async ({ page }) => {
+  await page.goto('/dpa');
+  await expect(page).toHaveURL(/\/dpa$/);
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Data Processing Agreement' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Subprocessors/ })).toBeVisible();
+});
+
 test('the account deletion instructions are public', async ({ page }) => {
   await page.goto('/account-deletion');
   await expect(page).toHaveURL(/\/account-deletion$/);

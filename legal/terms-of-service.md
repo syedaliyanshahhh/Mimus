@@ -4,7 +4,7 @@
 
 > **Draft. Have a qualified lawyer review this before publishing.** Fill in or remove every `[TODO: …]` first.
 
-These Terms govern your use of Mimus, the web app at [TODO: domain] (the "Service"), provided by [TODO: legal entity name] ("Mimus", "we", "us").
+These Terms govern your use of Mimus, the web app at https://getmimus.io (the "Service"), provided by EVG (USA) Management Inc., doing business as Mimus.io and AI Teammates ("Mimus", "we", "us").
 
 ## 1. Acceptance
 
@@ -25,7 +25,7 @@ You must be at least [TODO: minimum age, recommended 18] years old and able to f
   - **Owners** control the workspace: its members, roles, billing, feature settings and the visibility of connected accounts.
   - **Managers** can invite and remove Members.
 - You're responsible for activity under your account, and Owners are responsible for who they invite.
-- Give us accurate information, and tell us promptly at [TODO: contact email] if you suspect unauthorized access.
+- Give us accurate information, and tell us promptly at tech@youraiteammates.com if you suspect unauthorized access.
 
 ## 4. Connecting other services
 
@@ -34,6 +34,7 @@ Mimus works by reading data from services you choose to connect: Google (Gmail a
 - You authorize Mimus to access each service with the read-only permissions shown when you connect it. Our [Privacy Policy](/privacy) says exactly what we do with that data.
 - **Sending and booking are optional.** If you click "Allow sending and booking" for a Google or Microsoft account, you also authorize Mimus to send scheduling replies from that account and to create meetings on its calendar, within the approval level you choose (section 7).
 - Connect only accounts you're entitled to use. Make sure that connecting them, and any visibility you give your workspace, is allowed by your employer's policies and by those services' own terms.
+- **Workspace Owners can widen visibility.** An Owner (for example, your organization's CEO) can change a member's connected account from Private to Team or Company, which lets others in the workspace see its data. If your organization does this, it is responsible for telling the affected members first and for having a lawful basis to do so.
 - Your use of those services stays governed by their terms. We are not responsible for their availability or for changes they make to their APIs.
 - You can disconnect a service at any time. Doing so deletes its imported data from Mimus.
 - Mimus's use of information received from Google APIs adheres to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including its Limited Use requirements.
@@ -122,9 +123,9 @@ If you use the Service for an organization, that organization will defend and in
 
 ## 14. Governing law and disputes
 
-These Terms are governed by the laws of [TODO: governing law, e.g. Pakistan], excluding its conflict-of-law rules.
+These Terms are governed by the laws of the State of California, USA, excluding its conflict-of-law rules.
 
-Disputes will be resolved in the courts of [TODO: venue], unless mandatory consumer law where you live gives you the right to bring proceedings locally.
+Disputes will be resolved in the state or federal courts located in [TODO: county], California, unless mandatory consumer law where you live gives you the right to bring proceedings locally.
 
 [TODO: consider an arbitration clause after legal review]
 
@@ -134,11 +135,11 @@ We may update these Terms. For material changes, we will notify account holders 
 
 ## 16. General
 
-- These Terms and the Privacy Policy are the entire agreement between you and us about the Service. A separate signed agreement with your organization, if there is one, prevails where it conflicts with these Terms.
+- These Terms and the Privacy Policy are the entire agreement between you and us about the Service. A separate signed agreement with your organization, if there is one, prevails where it conflicts with these Terms. For organizations, our [Data Processing Agreement](/dpa) also applies to the personal data we process on your behalf.
 - If any provision is unenforceable, the rest of these Terms still applies.
 - Not enforcing a right isn't a waiver of it.
 - You may not transfer these Terms without our consent. We may transfer them as part of a merger or acquisition.
 
 ## 17. Contact
 
-[TODO: legal entity name], [TODO: address], [TODO: contact email].
+EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates), [TODO: address], tech@youraiteammates.com.

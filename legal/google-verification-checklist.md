@@ -4,11 +4,12 @@ Internal working doc, not published. Covers the steps for submitting Mimus to Go
 
 ## 1. Blockers to clear before submitting
 
-- [ ] **Production domain** is live and verified in Google Search Console by a project Owner or Editor. [TODO: domain]
-- [ ] **Hosting** is deployed. Vercel isn't set up yet (see PLAN.md, "External accounts").
+- [ ] **Production domain** is live and verified in Google Search Console by a project Owner or Editor. Domain: `getmimus.io`.
+- [x] **Hosting** is deployed: Vercel project `tech-2500/mimus`, production URL https://getmimus.io.
+- [ ] **Dev doesn't use production data.** Production runs on the `mimus-staging` Supabase project. Give dev its own project (or the local stack) with synthetic data, and remove the production `SUPABASE_SECRET_KEY` from developer machines. The policy promises break-glass-only staff access (Privacy §3 and §7).
 - [ ] **Homepage** `/` is public and describes Mimus without signing in. It links to `/privacy` and `/terms`. _(Built in `app/page.tsx`.)_
-- [ ] **Privacy Policy** is published at `https://[TODO: domain]/privacy`, with every `[TODO]` in `legal/privacy-policy.md` filled in and a lawyer's review done.
-- [ ] **Terms of Service** is published at `https://[TODO: domain]/terms`.
+- [ ] **Privacy Policy** is published at `https://getmimus.io/privacy`, with every `[TODO]` in `legal/privacy-policy.md` filled in and a lawyer's review done.
+- [ ] **Terms of Service** is published at `https://getmimus.io/terms`.
 - [ ] **Account deletion** works in the app (Settings → Account), and `/account-deletion` explains it publicly.
 - [x] **Milestone 5 scopes are final.** M5 added `gmail.send` and `calendar.events`, requested only through incremental consent when a user clicks "Allow sending and booking" (`src/server/connectors/writeScopes.ts`). List all four scopes on the consent screen configuration.
 - [ ] **CASA Tier 2 security assessment** is booked. It's required because `gmail.readonly` is a restricted scope. It is paid, must be done by a Google-approved assessor, takes weeks, and is renewed every year.
@@ -17,13 +18,13 @@ Internal working doc, not published. Covers the steps for submitting Mimus to Go
 
 - **App name:** `Mimus`. It must be identical on the consent screen, homepage `<title>`/heading and Privacy Policy.
 - **Logo:** [TODO: 120×120 PNG]. Use the same logo on the homepage. Uploading a logo triggers brand verification.
-- **User support email:** [TODO]
-- **Application homepage:** `https://[TODO: domain]/`
-- **Privacy policy link:** `https://[TODO: domain]/privacy`. Use the same URL that's linked from the homepage.
-- **Terms of service link:** `https://[TODO: domain]/terms`
-- **Authorized domains:** [TODO: domain]
-- **Developer contact email:** [TODO]
-- **Redirect URI:** `https://[TODO: domain]/api/connectors/google/callback`. This is the value of `GOOGLE_OAUTH_REDIRECT_URI`.
+- **User support email:** tech@youraiteammates.com
+- **Application homepage:** `https://getmimus.io/`
+- **Privacy policy link:** `https://getmimus.io/privacy`. Use the same URL that's linked from the homepage.
+- **Terms of service link:** `https://getmimus.io/terms`
+- **Authorized domains:** `getmimus.io`
+- **Developer contact email:** tech@youraiteammates.com
+- **Redirect URI:** `https://getmimus.io/api/connectors/google/callback`. This is the value of `GOOGLE_OAUTH_REDIRECT_URI`.
 
 ## 3. Scopes and their justifications
 
@@ -65,7 +66,7 @@ These are the only Google scopes Mimus requests. The two read-only scopes are re
 
 ## 4. Demo video script (unlisted YouTube; English UI; show the consent-screen URL bar)
 
-1. Open `https://[TODO: domain]/`. Show the homepage, then the Privacy Policy link and its "Google user data" section.
+1. Open `https://getmimus.io/`. Show the homepage, then the Privacy Policy link and its "Google user data" section.
 2. Sign in, then go to **Settings → Connections → Connect Google**.
 3. In the Google account chooser, show the **consent screen with the OAuth client ID visible in the URL**, then grant both scopes.
 4. **`gmail.readonly` in use:** ask in the Ask bar, e.g. "Summarize what [contact] emailed me last week". Show the answer, then click a source link to open the original message.
@@ -83,11 +84,12 @@ These are the only Google scopes Mimus requests. The two read-only scopes are re
 - **Is Google data sent to an AI model?** Yes, to OpenAI, but only to answer the user's own question, and only short excerpts: up to 1,500 characters per email and 500 per event description. Calls are made with `store: false` (`src/server/agent/providers/openai.ts`), and OpenAI doesn't train on API data. This is disclosed in Privacy Policy §3 and §5. [TODO: confirm Zero Data Retention status]
 - **Is Google data used to train models?** No, and the policy says so explicitly.
 - **Can the AI send email by itself?** Only within the user's approval level, only scheduling replies, only to the person who asked to meet, and only from accounts where the user granted `gmail.send`. The reply text is a fixed template (`src/server/scheduling/draftReply.ts`), so text inside an incoming email can't change what's sent or who receives it (adversarial test in `tests/server/scheduling/proposals.test.ts`). The default level requires approval for every send.
-- **Can humans read it?** Not through the app. A connected account is Private by default and enforced by database row-level security (`can_see_connected_account`, `supabase/migrations/0005_connected_accounts.sql`). Staff access is limited to [TODO].
+- **Can humans read it?** Not through the app. A connected account is Private by default and enforced by database row-level security (`can_see_connected_account`, `supabase/migrations/0005_connected_accounts.sql`). Staff have no standing access: production access is break-glass only (approved, time-limited, logged), and dev and test use synthetic data and sandbox accounts (Privacy Policy §3 and §7).
 - **Is it shared with other users?** Only within the user's own organization's workspace, and only when the account's visibility is set to Team or Company.
   - **Risk:** a workspace **Owner** can widen any member's account visibility (`update_connected_accounts` policy in `0005_connected_accounts.sql`) without that member's approval. Reviewers may treat this as sharing a user's Gmail without their consent.
-  - **Recommended fix before submitting:** only the account holder can raise their own account above Private.
-- **How is it stored?** Supabase Postgres in [TODO: region]. Tokens are AES-256-GCM encrypted (`src/server/crypto/tokenVault.ts`), and all data is encrypted at rest by Supabase.
+  - **Decision (2026-10-19):** keep it. The CEO (an Owner) can opt in to see employee-connected data, and the organization is responsible for telling employees. This is disclosed in Privacy Policy §3, Terms §4 and DPA §3.
+  - **If reviewers push back:** fall back to letting only the account holder raise their own account above Private, or require the holder's approval before an Owner widens it.
+- **How is it stored?** Supabase Postgres in the United States (US East, `us-east-1`). Tokens are AES-256-GCM encrypted (`src/server/crypto/tokenVault.ts`), and all data is encrypted at rest by Supabase.
 - **How is it deleted?**
   - Disconnect revokes the token and purges imported messages, events, contacts and tokens (`src/server/connectors/google/disconnect.ts`).
   - Account deletion does this for every connection (`src/server/account/deleteAccount.ts`).
