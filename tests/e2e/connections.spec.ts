@@ -1,5 +1,6 @@
+import { createServiceClient } from '@/src/db/service';
 import { expect, test } from '@playwright/test';
-import { seedConnectedAccount, signInViaMagicLink } from './helpers';
+import { addWorkspaceMember, seedConnectedAccount, signInViaMagicLink } from './helpers';
 
 // Google's OAuth client is app-level config set once per deployment: a dev
 // machine usually has it in .env.local, CI never does. The page must
@@ -27,10 +28,10 @@ test('changing a connected account visibility and disconnecting persists through
   const row = page.getByRole('listitem').filter({ hasText: 'Google Gmail' });
   await expect(row).toBeVisible();
   await expect(page.getByRole('group', { name: email })).toBeVisible();
-  await expect(row.getByRole('combobox')).toHaveValue('private');
+  await expect(row.getByRole('combobox', { name: 'Visibility' })).toHaveValue('private');
 
-  await row.getByRole('combobox').selectOption('team');
-  await expect(row.getByRole('combobox')).toHaveValue('team');
+  await row.getByRole('combobox', { name: 'Visibility' }).selectOption('team');
+  await expect(row.getByRole('combobox', { name: 'Visibility' })).toHaveValue('team');
 
   // Reload to prove the change was persisted through the real RLS-respecting
   // write path (this page uses the signed-in user's own session, not a
@@ -41,7 +42,7 @@ test('changing a connected account visibility and disconnecting persists through
   await expect(async () => {
     await page.reload();
     rowAfterReload = page.getByRole('listitem').filter({ hasText: 'Google Gmail' });
-    await expect(rowAfterReload.getByRole('combobox')).toHaveValue('team');
+    await expect(rowAfterReload.getByRole('combobox', { name: 'Visibility' })).toHaveValue('team');
   }).toPass({ timeout: 10_000 });
 
   await rowAfterReload.getByRole('button', { name: /disconnect/i }).click();
@@ -188,4 +189,67 @@ test('an own Google account offers “Allow sending and booking” until it has 
   await expect(
     page.getByRole('group', { name: writable }).getByText('Can send and book'),
   ).toBeVisible();
+});
+
+test('a read-only workspace can still set an account back to Private and disconnect it', async ({
+  page,
+}) => {
+  const email = `e2e-connections-readonly-${Date.now()}@example.com`;
+  await signInViaMagicLink(page, email);
+  const accountId = await seedConnectedAccount(email);
+
+  const supabase = createServiceClient();
+  const { data: account } = await supabase
+    .from('connected_accounts')
+    .update({ visibility: 'team' })
+    .eq('id', accountId)
+    .select('workspace_id')
+    .single()
+    .throwOnError();
+  await supabase
+    .from('workspace_subscriptions')
+    .insert({ workspace_id: account!.workspace_id, status: 'past_due' })
+    .throwOnError();
+
+  await page.goto('/settings/connections');
+  const row = page.getByRole('listitem').filter({ hasText: 'Google Gmail' });
+  await row.getByRole('combobox', { name: 'Visibility' }).selectOption('private');
+  await expect(row.getByRole('alert')).toHaveCount(0);
+  await expect(async () => {
+    await page.reload();
+    await expect(
+      page
+        .getByRole('listitem')
+        .filter({ hasText: 'Google Gmail' })
+        .getByRole('combobox', { name: 'Visibility' }),
+    ).toHaveValue('private');
+  }).toPass({ timeout: 10_000 });
+
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: 'Google Gmail' })
+    .getByRole('button', { name: /disconnect/i })
+    .click();
+  await expect(page.getByRole('listitem').filter({ hasText: 'Google Gmail' })).toHaveCount(0);
+});
+
+test('a Member is only offered Private for their own account', async ({ page }) => {
+  const stamp = Date.now();
+  const ownerEmail = `e2e-connections-owner-${stamp}@example.com`;
+  const memberEmail = `e2e-connections-member-${stamp}@example.com`;
+  await signInViaMagicLink(page, ownerEmail);
+  await addWorkspaceMember(ownerEmail, { email: memberEmail, role: 'member' });
+
+  await page.context().clearCookies();
+  await signInViaMagicLink(page, memberEmail);
+  await seedConnectedAccount(memberEmail);
+  await page.goto('/settings/connections');
+
+  const select = page
+    .getByRole('listitem')
+    .filter({ hasText: 'Google Gmail' })
+    .getByRole('combobox', { name: 'Visibility' });
+  await expect(select).toHaveValue('private');
+  await expect(select.locator('option[value="team"]')).toBeDisabled();
+  await expect(select.locator('option[value="company"]')).toBeDisabled();
 });

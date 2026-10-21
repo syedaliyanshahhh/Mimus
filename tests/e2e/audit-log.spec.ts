@@ -2,10 +2,7 @@ import { expect, test } from '@playwright/test';
 import { createServiceClient } from '@/src/db/service';
 import { addWorkspaceMember, signInViaMagicLink } from './helpers';
 
-test('the AI usage log is visible to Owners and hidden from Members', async ({
-  page,
-  browser,
-}) => {
+test('the AI usage log is visible to Owners and hidden from Members', async ({ page, browser }) => {
   const stamp = Date.now();
   const ownerEmail = `e2e-audit-owner-${stamp}@example.com`;
   const memberEmail = `e2e-audit-member-${stamp}@example.com`;
