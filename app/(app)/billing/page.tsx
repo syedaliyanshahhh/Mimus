@@ -4,6 +4,7 @@ import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { ManageSubscriptionButton } from './manage-subscription-button';
 import { SubscribeButton } from './subscribe-button';
 
 export default function BillingPage() {
@@ -81,6 +82,15 @@ async function BillingContent() {
           );
         })}
       </ul>
+
+      {subscription && role === 'owner' && (
+        <div className="mt-6 border-t border-line-muted pt-4">
+          <p className="mb-3 text-sm text-ink-muted">
+            Cancel, change your payment method or download invoices on Stripe&apos;s billing page.
+          </p>
+          <ManageSubscriptionButton />
+        </div>
+      )}
     </Card>
   );
 }

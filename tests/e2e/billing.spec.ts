@@ -55,4 +55,6 @@ test('a read-only workspace shows the banner on Sky and billing', async ({ page 
 
   await page.goto('/billing');
   await expect(page.getByText(bannerText)).toBeVisible();
+  // Cancelling has to stay reachable while the workspace is read-only.
+  await expect(page.getByRole('button', { name: /manage or cancel subscription/i })).toBeVisible();
 });
