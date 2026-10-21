@@ -21,13 +21,16 @@ export async function getWorkspaceRole(
 
 export type WorkspaceRole = 'owner' | 'manager' | 'member';
 
-// Owner can invite at any role. Manager can only invite Members -- the same
-// scope they're allowed to manage once invited (see canManageMember).
+// Owner can invite Managers and Members. Manager can only invite Members --
+// the same scope they're allowed to manage once invited (see
+// canManageMember). Nobody can invite a new Owner: the Members page never
+// offers it, and an invite link must not be a way to hand out ownership.
 export async function canInviteWithRole(
   actingUserId: string,
   workspaceId: string,
   role: WorkspaceRole,
 ): Promise<boolean> {
+  if (role === 'owner') return false;
   const actingRole = await getWorkspaceRole(actingUserId, workspaceId);
   if (actingRole === 'owner') return true;
   if (actingRole === 'manager') return role === 'member';

@@ -29,7 +29,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   const userId = data?.claims.sub as string | undefined;
   const email = data?.claims.email as string | undefined;
 
-  if (!userId) {
+  if (!userId || !email) {
     return (
       <Card>
         <p className="mb-4 text-sm text-ink">Sign in to accept this invite.</p>
@@ -44,7 +44,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   }
 
   try {
-    await acceptInvite({ token, userId });
+    await acceptInvite({ token, userId, email });
   } catch (error) {
     // Sign-in skips auto-provisioning for a pending invite, so if the
     // invite stopped being acceptable since then (revoked, expired) give

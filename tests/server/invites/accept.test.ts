@@ -6,12 +6,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 describe('acceptInvite', () => {
   const supabase = createServiceClient();
   const inviteeId = randomUUID();
+  const inviteeEmail = `invitee-${inviteeId}@example.com`;
   let workspaceId: string;
 
   beforeAll(async () => {
     const { error } = await supabase.auth.admin.createUser({
       id: inviteeId,
-      email: `invitee-${inviteeId}@example.com`,
+      email: inviteeEmail,
       email_confirm: true,
     });
     if (error) throw error;
@@ -40,7 +41,7 @@ describe('acceptInvite', () => {
       .from('invites')
       .insert({
         workspace_id: workspaceId,
-        email: 'invitee@example.com',
+        email: inviteeEmail,
         role: 'manager',
         token: randomUUID(),
         status: 'pending',
@@ -56,7 +57,7 @@ describe('acceptInvite', () => {
   it('creates a membership with the invited role and marks the invite accepted', async () => {
     const token = await insertInvite();
 
-    await acceptInvite({ token, userId: inviteeId });
+    await acceptInvite({ token, userId: inviteeId, email: inviteeEmail });
 
     const { data: membership } = await supabase
       .from('workspace_members')
@@ -79,20 +80,26 @@ describe('acceptInvite', () => {
       expires_at: new Date(Date.now() - 60_000).toISOString(),
     });
 
-    await expect(acceptInvite({ token, userId: randomUUID() })).rejects.toThrow();
+    await expect(
+      acceptInvite({ token, userId: randomUUID(), email: inviteeEmail }),
+    ).rejects.toThrow();
   });
 
   it('rejects an already-accepted invite', async () => {
     const token = await insertInvite({ status: 'accepted' });
 
-    await expect(acceptInvite({ token, userId: randomUUID() })).rejects.toThrow();
+    await expect(
+      acceptInvite({ token, userId: randomUUID(), email: inviteeEmail }),
+    ).rejects.toThrow();
   });
 
   it('accepts without changing the role when the user is already a member', async () => {
     // The first test made the invitee a manager of this workspace.
     const token = await insertInvite({ role: 'member' });
 
-    await expect(acceptInvite({ token, userId: inviteeId })).resolves.toBeUndefined();
+    await expect(
+      acceptInvite({ token, userId: inviteeId, email: inviteeEmail }),
+    ).resolves.toBeUndefined();
 
     const { data: memberships } = await supabase
       .from('workspace_members')
@@ -108,5 +115,48 @@ describe('acceptInvite', () => {
       .eq('token', token)
       .single();
     expect(invite?.status).toBe('accepted');
+  });
+
+  it('rejects a signed-in user whose email is not the invited one', async () => {
+    const token = await insertInvite();
+
+    await expect(
+      acceptInvite({ token, userId: inviteeId, email: 'someone-else@example.com' }),
+    ).rejects.toThrow(/sent to a different email/i);
+
+    const { data: invite } = await supabase
+      .from('invites')
+      .select('status')
+      .eq('token', token)
+      .single();
+    expect(invite?.status).toBe('pending');
+  });
+
+  it('matches the invited email case-insensitively', async () => {
+    const token = await insertInvite({ email: inviteeEmail.toUpperCase() });
+
+    await expect(
+      acceptInvite({ token, userId: inviteeId, email: inviteeEmail }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('brings a removed member back with the invited role', async () => {
+    await supabase
+      .from('workspace_members')
+      .update({ status: 'removed' })
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', inviteeId)
+      .throwOnError();
+    const token = await insertInvite({ role: 'member' });
+
+    await acceptInvite({ token, userId: inviteeId, email: inviteeEmail });
+
+    const { data: memberships } = await supabase
+      .from('workspace_members')
+      .select('role, status')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', inviteeId)
+      .throwOnError();
+    expect(memberships).toEqual([{ role: 'member', status: 'active' }]);
   });
 });
