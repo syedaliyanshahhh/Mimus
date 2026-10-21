@@ -195,6 +195,60 @@ describe('google webhook', () => {
       expect(account!.sync_cursor).toBe('200');
     });
 
+    it('skips spam, trash, promotions and social mail, like the first import does', async () => {
+      const { connectedAccountId } = await makeConnectedAccount();
+      await supabase
+        .from('connected_accounts')
+        .update({ sync_cursor: '100' })
+        .eq('id', connectedAccountId)
+        .throwOnError();
+
+      const historyPrototype = Object.getPrototypeOf(
+        google.gmail({ version: 'v1', auth: new google.auth.OAuth2() }).users.history,
+      );
+      vi.spyOn(historyPrototype, 'list').mockResolvedValueOnce({
+        data: {
+          history: [
+            {
+              messagesAdded: [
+                { message: { id: 'msg-promo' } },
+                { message: { id: 'msg-spam' } },
+                { message: { id: 'msg-real' } },
+              ],
+            },
+          ],
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+      const labelsById: Record<string, string[]> = {
+        'msg-promo': ['INBOX', 'CATEGORY_PROMOTIONS'],
+        'msg-spam': ['SPAM'],
+        'msg-real': ['INBOX', 'CATEGORY_PERSONAL'],
+      };
+      const messagesPrototype = Object.getPrototypeOf(
+        google.gmail({ version: 'v1', auth: new google.auth.OAuth2() }).users.messages,
+      );
+      vi.spyOn(messagesPrototype, 'get').mockImplementation((async ({ id }: { id: string }) => ({
+        data: {
+          id,
+          labelIds: labelsById[id],
+          internalDate: '1700000000000',
+          payload: { headers: [{ name: 'From', value: 'jane@example.com' }] },
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      })) as any);
+
+      await handleGmailPushNotification({ emailAddress: FOUNDER, historyId: '200' });
+
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('provider_message_id')
+        .eq('connected_account_id', connectedAccountId)
+        .throwOnError();
+      expect(messages).toEqual([{ provider_message_id: 'msg-real' }]);
+    });
+
     it('adopts the new historyId as the baseline when there is no stored cursor yet', async () => {
       const { connectedAccountId } = await makeConnectedAccount();
 

@@ -179,6 +179,8 @@ describe('disconnectMicrosoftAccount', () => {
   });
 
   it('deletes the Graph change-notification subscription before purging', async () => {
+    // Unique: webhook.test.ts looks accounts up by subscription id in parallel.
+    const subscriptionId = `sub-${randomUUID()}`;
     const { workspaceId, userId } = await makeWorkspace();
     const emailAccountId = await makeConnectedAccount(
       workspaceId,
@@ -188,7 +190,7 @@ describe('disconnectMicrosoftAccount', () => {
     );
     await supabase
       .from('connected_accounts')
-      .update({ watch_channel_id: 'sub-123' })
+      .update({ watch_channel_id: subscriptionId })
       .eq('id', emailAccountId)
       .throwOnError();
 
@@ -198,7 +200,7 @@ describe('disconnectMicrosoftAccount', () => {
 
     await disconnectMicrosoftAccount(emailAccountId);
 
-    expect(api).toHaveBeenCalledWith('/subscriptions/sub-123');
+    expect(api).toHaveBeenCalledWith(`/subscriptions/${subscriptionId}`);
     expect(del).toHaveBeenCalled();
   });
 
@@ -212,7 +214,7 @@ describe('disconnectMicrosoftAccount', () => {
     );
     await supabase
       .from('connected_accounts')
-      .update({ watch_channel_id: 'sub-expired' })
+      .update({ watch_channel_id: `sub-${randomUUID()}` })
       .eq('id', emailAccountId)
       .throwOnError();
 

@@ -5,6 +5,11 @@ import { upsertMessage } from '@/src/server/shared/normalize';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 
+// The same mail the first import leaves out (backfill.ts's
+// GMAIL_BACKFILL_EXCLUSIONS search query), expressed as the label ids
+// history.list can't filter by, so live sync never imports it later.
+const EXCLUDED_GMAIL_LABELS = new Set(['SPAM', 'TRASH', 'CATEGORY_PROMOTIONS', 'CATEGORY_SOCIAL']);
+
 // Gmail watch()/stop() need the INBOX label, matching backfill.ts's
 // whole-mailbox scope -- this never watches a narrower label set.
 const WATCH_LABEL_IDS = ['INBOX'];
@@ -110,6 +115,7 @@ async function syncGmailHistory(
             id: added.message.id,
             format: 'full',
           });
+          if (full.labelIds?.some((label) => EXCLUDED_GMAIL_LABELS.has(label))) continue;
           await upsertMessage(workspaceId, connectedAccountId, normalizeGmailMessage(full));
         }
       }
