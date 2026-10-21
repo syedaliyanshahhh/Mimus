@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { createServiceClient } from '@/src/db/service';
-import { latestInviteToken, latestMagicLink, signInViaMagicLink } from './helpers';
+import {
+  addWorkspaceMember,
+  latestInviteToken,
+  latestMagicLink,
+  signInViaMagicLink,
+} from './helpers';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3000';
 
@@ -62,25 +67,60 @@ test('owner invites, promotes, and removes a teammate through real RLS', async (
   await page.reload();
   const row = page.getByRole('listitem').filter({ hasText: inviteeEmail });
   await expect(row).toBeVisible();
-  await expect(row.getByRole('combobox')).toHaveValue('member');
+  await expect(row.getByRole('combobox', { name: 'Role' })).toHaveValue('member');
 
-  await row.getByRole('combobox').selectOption('manager');
-  await expect(row.getByRole('combobox')).toHaveValue('manager');
+  await row.getByRole('combobox', { name: 'Role' }).selectOption('manager');
+  await expect(row.getByRole('combobox', { name: 'Role' })).toHaveValue('manager');
   // RoleSelect's onChange awaits the server action and only re-enables the
   // select once it resolves -- wait for that before reloading, otherwise
   // the reload can race the still-in-flight write and read back the old role.
-  await expect(row.getByRole('combobox')).not.toBeDisabled();
+  await expect(row.getByRole('combobox', { name: 'Role' })).not.toBeDisabled();
 
   // Reload to prove the role change was persisted through the real
   // RLS-respecting write path (migration 0011's UPDATE policy), not just
   // held in client-side state.
   await page.reload();
   const rowAfterReload = page.getByRole('listitem').filter({ hasText: inviteeEmail });
-  await expect(rowAfterReload.getByRole('combobox')).toHaveValue('manager');
+  await expect(rowAfterReload.getByRole('combobox', { name: 'Role' })).toHaveValue('manager');
 
   await rowAfterReload.getByRole('button', { name: /remove/i }).click();
   await expect(page.getByRole('listitem').filter({ hasText: inviteeEmail })).toHaveCount(0);
 
   await page.reload();
   await expect(page.getByRole('listitem').filter({ hasText: inviteeEmail })).toHaveCount(0);
+});
+
+test('owner assigns who a member reports to', async ({ page }) => {
+  const stamp = Date.now();
+  const ownerEmail = `e2e-reports-owner-${stamp}@example.com`;
+  const managerEmail = `e2e-reports-manager-${stamp}@example.com`;
+  const memberEmail = `e2e-reports-member-${stamp}@example.com`;
+
+  await signInViaMagicLink(page, ownerEmail);
+  const manager = await addWorkspaceMember(ownerEmail, { email: managerEmail, role: 'manager' });
+  const member = await addWorkspaceMember(ownerEmail, { email: memberEmail, role: 'member' });
+
+  await page.goto('/members');
+  const row = page.getByRole('listitem').filter({ hasText: memberEmail });
+  const reportsTo = row.getByRole('combobox', { name: 'Reports to' });
+  await expect(reportsTo).toHaveValue('');
+
+  await reportsTo.selectOption({ label: managerEmail });
+  await expect(reportsTo).not.toBeDisabled();
+
+  await page.reload();
+  await expect(
+    page
+      .getByRole('listitem')
+      .filter({ hasText: memberEmail })
+      .getByRole('combobox', { name: 'Reports to' }),
+  ).toHaveValue(manager.membershipId);
+
+  const { data } = await createServiceClient()
+    .from('workspace_members')
+    .select('manager_id')
+    .eq('id', member.membershipId)
+    .single()
+    .throwOnError();
+  expect(data!.manager_id).toBe(manager.membershipId);
 });

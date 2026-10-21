@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { InviteForm } from './invite-form';
+import { ManagerSelect } from './manager-select';
 import { RemoveButton } from './remove-button';
 import { RoleSelect } from './role-select';
 
@@ -37,7 +38,7 @@ async function MembersList() {
 
   const { data: members } = await supabase
     .from('workspace_members')
-    .select('id, user_id, role')
+    .select('id, user_id, role, manager_id')
     .eq('workspace_id', workspaceId)
     .eq('status', 'active');
 
@@ -48,6 +49,13 @@ async function MembersList() {
       : { data: [] as { id: string; email: string }[] };
 
   const emailByUserId = new Map((profiles ?? []).map((profile) => [profile.id, profile.email]));
+  // Who someone can report to: any Owner or Manager (migration 0021).
+  const managerOptions = (members ?? [])
+    .filter((member) => member.role === 'owner' || member.role === 'manager')
+    .map((member) => ({
+      id: member.id as string,
+      label: emailByUserId.get(member.user_id) ?? member.user_id,
+    }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -77,7 +85,17 @@ async function MembersList() {
                 {showControls && (
                   <div className="flex items-center gap-3">
                     {viewerRole === 'owner' && (
-                      <RoleSelect memberId={member.id} role={member.role as 'manager' | 'member'} />
+                      <>
+                        <ManagerSelect
+                          memberId={member.id}
+                          managerId={member.manager_id}
+                          managers={managerOptions.filter((option) => option.id !== member.id)}
+                        />
+                        <RoleSelect
+                          memberId={member.id}
+                          role={member.role as 'manager' | 'member'}
+                        />
+                      </>
                     )}
                     <RemoveButton memberId={member.id} />
                   </div>

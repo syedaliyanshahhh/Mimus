@@ -161,3 +161,41 @@ export async function seedInboundMessage(
     from: { email: fromEmail, displayName: fromName },
   });
 }
+
+// Adds a teammate straight into the signed-in owner's workspace (an auth
+// user, their profile and an active membership), skipping the invite round
+// trip for specs that only need someone to already be on the team.
+export async function addWorkspaceMember(
+  ownerEmail: string,
+  { email, role }: { email: string; role: 'manager' | 'member' },
+): Promise<{ userId: string; membershipId: string }> {
+  const supabase = createServiceClient();
+  const { data: owner, error: ownerError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', ownerEmail)
+    .single();
+  if (ownerError) throw ownerError;
+  const { data: ownerMembership, error: membershipError } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', owner.id)
+    .single();
+  if (membershipError) throw membershipError;
+
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+  });
+  if (createError) throw createError;
+  const userId = created.user.id;
+
+  await supabase.from('profiles').insert({ id: userId, email }).throwOnError();
+  const { data: membership } = await supabase
+    .from('workspace_members')
+    .insert({ workspace_id: ownerMembership.workspace_id, user_id: userId, role })
+    .select('id')
+    .single()
+    .throwOnError();
+  return { userId, membershipId: membership!.id as string };
+}

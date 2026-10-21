@@ -57,3 +57,25 @@ export async function removeMember(memberId: string) {
   if (error) throw error;
   revalidatePath('/members');
 }
+
+// Who a member reports to scopes Team visibility, so migration 0021's
+// trigger lets only an Owner change it and only to an active Owner or
+// Manager. Under the caller's own session client, like the actions above.
+export async function assignManager(memberId: string, managerMemberId: string | null) {
+  const context = await getCurrentWorkspaceContext();
+  if (!context) {
+    throw new Error('Not signed in');
+  }
+  await assertWorkspaceWritable(context.workspaceId);
+
+  const { data, error } = await context.supabase
+    .from('workspace_members')
+    .update({ manager_id: managerMemberId })
+    .eq('id', memberId)
+    .select('id');
+  if (error) throw error;
+  if (!data?.length) {
+    throw new Error('You can’t change who this member reports to.');
+  }
+  revalidatePath('/members');
+}

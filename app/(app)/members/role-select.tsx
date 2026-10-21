@@ -11,6 +11,7 @@ export function RoleSelect({ memberId, role }: { memberId: string; role: 'manage
   return (
     <div className="flex flex-col items-end gap-1">
       <select
+        aria-label="Role"
         defaultValue={role}
         disabled={pending}
         onChange={async (event) => {
