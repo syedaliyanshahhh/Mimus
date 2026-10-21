@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { createServiceClient } from '@/src/db/service';
 import {
+  acceptTermsOnPage,
   addWorkspaceMember,
   latestInviteToken,
   latestMagicLink,
@@ -39,6 +40,9 @@ test('owner invites, promotes, and removes a teammate through real RLS', async (
 
   const magicLink = await latestMagicLink(inviteeEmail);
   await inviteePage.goto(magicLink);
+  // The clickwrap comes first, then carries on to the invite.
+  await expect(inviteePage).toHaveURL(/\/accept-terms\?next=%2Finvite%2F/);
+  await acceptTermsOnPage(inviteePage);
   await expect(inviteePage.getByText(/joined the workspace/i)).toBeVisible();
   await inviteeContext.close();
 
