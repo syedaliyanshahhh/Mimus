@@ -76,7 +76,7 @@ describe('disconnectCalendlyAccount', () => {
     return { workspaceId: workspace!.id as string, connectedAccountId: account!.id as string };
   }
 
-  it('revokes the token, purges events/people, deletes the secret, and marks disconnected', async () => {
+  it('revokes the token, purges events/people, deletes the secret, and deletes the account row', async () => {
     const { workspaceId, connectedAccountId } = await makeConnectedAccount();
     await upsertEvent(workspaceId, connectedAccountId, {
       providerEventId: 'https://api.calendly.com/scheduled_events/xyz',
@@ -106,12 +106,11 @@ describe('disconnectCalendlyAccount', () => {
 
     const { data: account } = await supabase
       .from('connected_accounts')
-      .select('status, disconnected_at')
+      .select('id')
       .eq('id', connectedAccountId)
-      .single()
+      .maybeSingle()
       .throwOnError();
-    expect(account!.status).toBe('disconnected');
-    expect(account!.disconnected_at).not.toBeNull();
+    expect(account).toBeNull();
 
     const { data: events } = await supabase
       .from('events')
@@ -127,5 +126,36 @@ describe('disconnectCalendlyAccount', () => {
       .maybeSingle()
       .throwOnError();
     expect(secret).toBeNull();
+  });
+
+  it('deletes the Calendly webhook subscription it created for the account', async () => {
+    const { connectedAccountId } = await makeConnectedAccount();
+    const subscriptionUri = 'https://api.calendly.com/webhook_subscriptions/sub-1';
+    await supabase
+      .from('connected_accounts')
+      .update({ watch_channel_id: subscriptionUri })
+      .eq('id', connectedAccountId)
+      .throwOnError();
+
+    const realFetch = globalThis.fetch;
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (input, init) =>
+        String(input).includes('calendly.com')
+          ? new Response(null, { status: 204 })
+          : realFetch(input, init),
+      );
+
+    await disconnectCalendlyAccount(connectedAccountId);
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      subscriptionUri,
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+    // The subscription goes before the token is revoked, while it still works.
+    const calendlyUrls = fetchSpy.mock.calls
+      .map(([input]) => String(input))
+      .filter((url) => url.includes('calendly.com'));
+    expect(calendlyUrls).toEqual([subscriptionUri, 'https://auth.calendly.com/oauth/revoke']);
   });
 });

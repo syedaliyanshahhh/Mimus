@@ -111,6 +111,17 @@ describe('calendly webhook', () => {
       expect(body.organization).toBe('https://api.calendly.com/organizations/def');
       expect(body.signing_key).toBe(SIGNING_KEY);
       expect(new URL(body.url).searchParams.get('account')).toBe(connectedAccountId);
+
+      // Stored so disconnect can delete exactly this subscription.
+      const { data: account } = await supabase
+        .from('connected_accounts')
+        .select('watch_channel_id')
+        .eq('id', connectedAccountId)
+        .single()
+        .throwOnError();
+      expect(account!.watch_channel_id).toBe(
+        'https://api.calendly.com/webhook_subscriptions/sub-1',
+      );
     });
   });
 
