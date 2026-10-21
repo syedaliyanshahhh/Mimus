@@ -9,6 +9,29 @@ Priorities:
 - **P2:** processing or security behaviour that isn't disclosed or undercuts a stated safeguard.
 - **P3:** consistency and housekeeping.
 
+## Status (2026-10-22, branch `feature/policy-gap-fixes`)
+
+| Item                                   | Status                                                                                                                                                                  |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #1 Standing production access          | **Ops, in progress.** `mimus-dev` Supabase project with synthetic `seed.sql`; production secret key rotation and removing it from developer machines tracked in the PR. |
+| #2 Disconnect revocation               | **Fixed in code + policy.** Gmail watch stopped, Graph and Calendly subscriptions deleted, row hard-deleted; policy explains Microsoft and Slack limits.                |
+| #3 Slack/scheduling data to OpenAI     | **Policy corrected** (Privacy §3, DPA §9).                                                                                                                              |
+| #4 Owners widening Private             | **Policy corrected** to match the database, proven by pgTAP as the Owner's session.                                                                                     |
+| #5 Team/Company reach                  | **Fixed in code** (Owner-only "Reports to", migration 0021) **+ policy** (no sharing-list UI yet).                                                                      |
+| #6 AI usage log page                   | **Fixed in code.**                                                                                                                                                      |
+| #7 Sign-in email sender                | **Verified + policy corrected:** production Supabase Auth has no custom SMTP, so Supabase sends sign-in emails; invites require a verified Resend sender in production. |
+| #8 Cancel subscription                 | **Fixed in code** (Stripe customer portal).                                                                                                                             |
+| #9 Read-only blocks Disconnect/Private | **Fixed in code.**                                                                                                                                                      |
+| #10 Removed members                    | **Fixed in code** (purge on removal; migration 0022 gives removed users a workspace).                                                                                   |
+| #11 Data export                        | **Open.** Requests by email, as the policy says.                                                                                                                        |
+| #12 Ownership transfer                 | **Open.** Contact us, as the policy says.                                                                                                                               |
+| #13 Terms acceptance/notices           | **Fixed in code** (clickwrap, migration 0023); email notices still manual.                                                                                              |
+| #14 Age check                          | **Fixed** (18+, attested in the clickwrap).                                                                                                                             |
+| P2 processing items                    | **Fixed in code** (Gmail filters, Outlook deletions, row deletion, agent logs) **or policy corrected** (cookies, Stripe customer, 2-year calendar).                     |
+| P2 security items                      | **Fixed in code** (invite email binding and no Owner invites, open redirect, billing RLS migration 0024, visibility errors).                                            |
+| P3 billing items                       | **Policy corrected** (Terms §8). Unlabelled Canopy/Ground mock data still open.                                                                                         |
+| P3 housekeeping                        | **DPA footer link fixed.** Business-fact `[TODO]`s still open.                                                                                                          |
+
 ## P0: policy states something false today
 
 ### 1. No standing production access (not true yet)

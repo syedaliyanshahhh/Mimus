@@ -25,7 +25,7 @@ If this DPA conflicts with the Terms of Service, this DPA prevails for the proce
 
 - We process Customer Personal Data only to provide the Service, as configured by you and your members, and on your other documented instructions. Your use of the Service's settings (connecting and disconnecting accounts, visibility, scheduling approval levels, deleting accounts) counts as an instruction.
 - We will tell you if we believe an instruction breaks Data Protection Laws.
-- **Workspace visibility.** Your workspace Owners can widen the visibility of a member's connected account so that others in the workspace, such as your CEO, can see its data. You are responsible for having a lawful basis to do this and for telling the affected members first.
+- **Workspace visibility.** A member's connected account is Private (visible only to that member) until the member, if they are an Owner or Manager, shares it at Team or Company visibility. Once it is shared, your workspace Owners can change its visibility further. Nobody else can widen a Private account. You are responsible for having a lawful basis for any sharing your workspace sets up and for telling the affected members first.
 - You are responsible for the lawfulness of the data your members connect, and for any notices to and consents from them and from the people in their data.
 
 ## 4. CCPA service provider terms
@@ -66,7 +66,8 @@ We maintain technical and organizational measures appropriate to the risk, inclu
 
 ## 8. Deletion
 
-- When a member disconnects a service, we revoke our access and immediately delete the data imported from it.
+- When a member disconnects a service, we stop the service's change notifications, revoke our access where the service allows it, and immediately delete the data imported from it and the connection record. Microsoft offers no per-app revocation, so the member removes Mimus from their Microsoft account's app permissions; the Mimus Slack app stays installed in a Slack workspace until a Slack admin removes it.
+- When an Owner removes a member from your workspace, we disconnect the services that member connected in your workspace and delete their imported data in the same way.
 - When a member deletes their account, or your agreement ends and your workspace is deleted, we delete the Customer Personal Data as described in section 9 of the [Privacy Policy](/privacy).
 - Deleted data may remain in our database provider's encrypted backups until they expire. [TODO: confirm backup retention period for the production plan]
 
@@ -75,7 +76,7 @@ We maintain technical and organizational measures appropriate to the risk, inclu
 You authorize us to use the subprocessors listed below. Each is bound by written terms that protect Customer Personal Data at least as well as this DPA.
 
 - **Supabase, Inc.**
-  - Purpose: database and sign-in.
+  - Purpose: database and sign-in, including sending sign-in emails.
   - Data: all Customer Personal Data.
   - Location: United States (US East).
 - **Vercel Inc.**
@@ -84,10 +85,10 @@ You authorize us to use the subprocessors listed below. Each is bound by written
   - Location: United States.
 - **OpenAI, L.L.C.**
   - Purpose: generates AI answers.
-  - Data: a member's question and short excerpts of relevant messages and events (up to 1,500 characters per email and 500 per event description). Sent with storage turned off; not used for training.
+  - Data: a member's question and short excerpts of relevant data (up to 1,500 characters per email, 500 per event description and 1,000 per Slack message), and, when a member asks Mimus to propose meeting times, the free time slots found and the drafted reply. Sent with storage turned off; not used for training.
   - Location: United States. [TODO: confirm whether Zero Data Retention is enabled]
 - **Resend, Inc.**
-  - Purpose: delivers sign-in and teammate invitation emails.
+  - Purpose: delivers teammate invitation emails.
   - Data: the recipient's email address and the email contents.
   - Location: United States.
 - **Stripe, Inc.**

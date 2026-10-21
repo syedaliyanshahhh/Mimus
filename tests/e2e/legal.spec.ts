@@ -88,3 +88,16 @@ test('the sign-in page links to the Terms and Privacy Policy', async ({ page }) 
     '/privacy',
   );
 });
+
+test('the public footer links every legal document, including the DPA', async ({ page }) => {
+  await page.goto('/privacy');
+  const footer = page.getByRole('navigation', { name: 'Legal' });
+  for (const [name, href] of [
+    ['Privacy Policy', '/privacy'],
+    ['Terms of Service', '/terms'],
+    ['Data Processing Agreement', '/dpa'],
+    ['Delete your account', '/account-deletion'],
+  ]) {
+    await expect(footer.getByRole('link', { name })).toHaveAttribute('href', href);
+  }
+});

@@ -4,6 +4,7 @@ import { MimusLogo } from '@/components/brand/logo';
 const LINKS = [
   { href: '/privacy', label: 'Privacy Policy' },
   { href: '/terms', label: 'Terms of Service' },
+  { href: '/dpa', label: 'Data Processing Agreement' },
   { href: '/account-deletion', label: 'Delete your account' },
 ];
 
