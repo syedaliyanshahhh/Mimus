@@ -20,11 +20,11 @@ export default function SignInPage() {
           <SignInForm />
         </Suspense>
         <p className="mt-6 text-xs text-ink-muted">
-          By continuing, you agree to the{' '}
+          After signing in you&apos;ll be asked to accept the{' '}
           <Link href="/terms" className="underline underline-offset-2 hover:text-ink">
             Terms of Service
           </Link>{' '}
-          and acknowledge the{' '}
+          and the{' '}
           <Link href="/privacy" className="underline underline-offset-2 hover:text-ink">
             Privacy Policy
           </Link>

@@ -1,5 +1,6 @@
 import { createClient } from '@/src/db/server';
 import { safeNextPath } from '@/src/server/http/safeNextPath';
+import { hasAcceptedCurrentTerms } from '@/src/server/legal/termsAcceptance';
 import { provisionAfterSignIn } from '@/src/server/workspaces/provisionAfterSignIn';
 import { type EmailOtpType } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
@@ -27,6 +28,9 @@ export async function GET(request: NextRequest) {
 
   if (!error && data.user?.email) {
     await provisionAfterSignIn({ userId: data.user.id, email: data.user.email, next });
+    if (!(await hasAcceptedCurrentTerms(supabase, data.user.id))) {
+      redirect(`/accept-terms?next=${encodeURIComponent(next)}`);
+    }
     redirect(next);
   }
 
