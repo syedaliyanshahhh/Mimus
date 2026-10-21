@@ -2,6 +2,7 @@
 
 import { assertWorkspaceWritable } from '@/src/server/billing/killSwitch';
 import { createInvite } from '@/src/server/invites/createInvite';
+import { purgeRemovedMember } from '@/src/server/members/purgeRemovedMember';
 import { getBaseUrl } from '@/src/server/http/getBaseUrl';
 import type { WorkspaceRole } from '@/src/server/permissions/roles';
 import { getCurrentWorkspaceContext } from '@/src/server/workspaces/getCurrentWorkspaceContext';
@@ -50,11 +51,17 @@ export async function removeMember(memberId: string) {
   }
   await assertWorkspaceWritable(context.workspaceId);
 
-  const { error } = await context.supabase
+  // The RLS-scoped update is the authorization check; the purge then runs
+  // as the service role, same pattern as disconnectAccount.
+  const { data, error } = await context.supabase
     .from('workspace_members')
     .update({ status: 'removed' })
-    .eq('id', memberId);
+    .eq('id', memberId)
+    .select('workspace_id, user_id');
   if (error) throw error;
+  for (const removed of data ?? []) {
+    await purgeRemovedMember({ workspaceId: removed.workspace_id, userId: removed.user_id });
+  }
   revalidatePath('/members');
 }
 

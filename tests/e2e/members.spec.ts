@@ -124,3 +124,25 @@ test('owner assigns who a member reports to', async ({ page }) => {
     .throwOnError();
   expect(data!.manager_id).toBe(manager.membershipId);
 });
+
+test('a removed member can still reach Settings → Account to delete their account', async ({
+  page,
+}) => {
+  const stamp = Date.now();
+  const ownerEmail = `e2e-removed-owner-${stamp}@example.com`;
+  const memberEmail = `e2e-removed-member-${stamp}@example.com`;
+
+  await signInViaMagicLink(page, ownerEmail);
+  const member = await addWorkspaceMember(ownerEmail, { email: memberEmail, role: 'member' });
+  await createServiceClient()
+    .from('workspace_members')
+    .update({ status: 'removed' })
+    .eq('id', member.membershipId)
+    .throwOnError();
+
+  await page.context().clearCookies();
+  await signInViaMagicLink(page, memberEmail);
+  await page.goto('/settings/account');
+  await expect(page.getByText(`Signed in as ${memberEmail}`)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Delete account' })).toBeVisible();
+});
