@@ -14,6 +14,10 @@ import { google } from 'googleapis';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { gmail_v1 } from 'googleapis';
 
+// Unique per run: the push handler looks accounts up by address, and other
+// connector test files running in parallel use their own founder@ rows.
+const FOUNDER = `webhook-founder-${randomUUID()}@example.com`;
+
 describe('google webhook', () => {
   const supabase = createServiceClient();
   const createdUserIds: string[] = [];
@@ -34,7 +38,7 @@ describe('google webhook', () => {
     createdUserIds.length = 0;
   });
 
-  async function makeConnectedAccount(externalAccountId = 'founder@example.com') {
+  async function makeConnectedAccount(externalAccountId = FOUNDER) {
     const { data: company } = await supabase
       .from('companies')
       .insert({ name: 'Webhook test co' })
@@ -123,10 +127,10 @@ describe('google webhook', () => {
   describe('decodePubSubMessage', () => {
     it('decodes a base64 JSON payload', () => {
       const data = Buffer.from(
-        JSON.stringify({ emailAddress: 'founder@example.com', historyId: '98765' }),
+        JSON.stringify({ emailAddress: FOUNDER, historyId: '98765' }),
       ).toString('base64');
       expect(decodePubSubMessage({ message: { data } })).toEqual({
-        emailAddress: 'founder@example.com',
+        emailAddress: FOUNDER,
         historyId: '98765',
       });
     });
@@ -136,9 +140,7 @@ describe('google webhook', () => {
     });
 
     it('throws when the decoded payload is missing fields', () => {
-      const data = Buffer.from(JSON.stringify({ emailAddress: 'founder@example.com' })).toString(
-        'base64',
-      );
+      const data = Buffer.from(JSON.stringify({ emailAddress: FOUNDER })).toString('base64');
       expect(() => decodePubSubMessage({ message: { data } })).toThrow(/missing/i);
     });
   });
@@ -175,7 +177,7 @@ describe('google webhook', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
-      await handleGmailPushNotification({ emailAddress: 'founder@example.com', historyId: '200' });
+      await handleGmailPushNotification({ emailAddress: FOUNDER, historyId: '200' });
 
       const { data: messages } = await supabase
         .from('messages')
@@ -201,7 +203,7 @@ describe('google webhook', () => {
       );
       const listSpy = vi.spyOn(historyPrototype, 'list');
 
-      await handleGmailPushNotification({ emailAddress: 'founder@example.com', historyId: '150' });
+      await handleGmailPushNotification({ emailAddress: FOUNDER, historyId: '150' });
 
       expect(listSpy).not.toHaveBeenCalled();
       const { data: account } = await supabase
@@ -229,7 +231,7 @@ describe('google webhook', () => {
       } as any);
 
       const data = Buffer.from(
-        JSON.stringify({ emailAddress: 'founder@example.com', historyId: '300' }),
+        JSON.stringify({ emailAddress: FOUNDER, historyId: '300' }),
       ).toString('base64');
       const request = new Request('https://app.example.com/api/webhooks/google/pubsub', {
         method: 'POST',
