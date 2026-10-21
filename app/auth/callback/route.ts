@@ -1,4 +1,5 @@
 import { createClient } from '@/src/db/server';
+import { safeNextPath } from '@/src/server/http/safeNextPath';
 import { provisionAfterSignIn } from '@/src/server/workspaces/provisionAfterSignIn';
 import { type EmailOtpType } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
@@ -9,8 +10,9 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const tokenHash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
-  const next =
-    searchParams.get('next') ?? request.cookies.get('mimus-post-auth-redirect')?.value ?? '/';
+  const next = safeNextPath(
+    searchParams.get('next') ?? request.cookies.get('mimus-post-auth-redirect')?.value,
+  );
 
   const supabase = await createClient();
 
