@@ -1,3 +1,4 @@
+import { describeError } from '@/src/server/agent/describeError';
 import { askMimus } from '@/src/server/agent/ask';
 import { askEventStream } from '@/src/server/agent/askStream';
 import { AGENT_MODULES } from '@/src/server/agent/modules';
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
         provider,
         onEvent,
       }),
-    (err) => console.error('[agent] ask failed', err),
+    (err) => console.error(`[agent] ask failed: ${describeError(err)}`),
   );
   return new Response(stream, {
     headers: { 'content-type': 'application/x-ndjson', 'cache-control': 'no-store' },

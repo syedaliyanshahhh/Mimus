@@ -1,3 +1,4 @@
+import { describeError } from '@/src/server/agent/describeError';
 import { createSchedulingProposal } from '@/src/server/agent/tools/createSchedulingProposal';
 import { draftEmail } from '@/src/server/agent/tools/draftEmail';
 import { proposeMeetingTimes } from '@/src/server/agent/tools/proposeMeetingTimes';
@@ -53,7 +54,9 @@ export async function runTool(
     const result = await TOOLS[name as ToolName].run(ctx, args);
     return { ...result, isError: false };
   } catch (err) {
-    if (!(err instanceof ToolInputError)) console.error(`[agent] tool ${name} failed`, err);
+    if (!(err instanceof ToolInputError)) {
+      console.error(`[agent] tool ${name} failed: ${describeError(err)}`);
+    }
     const message = err instanceof ToolInputError ? err.message : 'The tool failed.';
     return { data: { error: message }, sources: [], isError: true };
   }
