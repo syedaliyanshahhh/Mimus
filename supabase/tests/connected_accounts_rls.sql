@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(26);
 
 select has_table('public', 'connected_accounts', 'connected_accounts table exists');
 select has_table('public', 'connected_account_secrets', 'connected_account_secrets table exists');
@@ -71,6 +71,41 @@ select throws_ok(
   $$ select * from connected_account_secrets $$,
   'permission denied for table connected_account_secrets',
   'authenticated role cannot read connected_account_secrets at all'
+);
+reset role;
+
+-- Private stays private even from the workspace Owner, asserted as the
+-- Owner's own session (not superuser): the Owner can't list the account
+-- and can't widen it. The Privacy Policy and Terms describe exactly this.
+insert into connected_accounts (id, workspace_id, owner_user_id, provider, account_type, visibility) values
+  ('11111111-2222-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-00000000000d', 'google', 'calendar', 'private');
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"c0000000-0000-0000-0000-00000000000f","role":"authenticated"}';
+select is(
+  (select count(*)::int from connected_accounts where id = '11111111-2222-0000-0000-000000000002'),
+  0,
+  'owner session: a member''s Private account is not listed'
+);
+update connected_accounts set visibility = 'team' where id = '11111111-2222-0000-0000-000000000002';
+reset role;
+select is(
+  (select visibility from connected_accounts where id = '11111111-2222-0000-0000-000000000002'),
+  'private',
+  'owner session: widening a member''s Private account changes nothing'
+);
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"c0000000-0000-0000-0000-00000000000d","role":"authenticated"}';
+select is(
+  (select count(*)::int from connected_accounts where id = '11111111-2222-0000-0000-000000000002'),
+  1,
+  'member session: the connector lists their own Private account'
+);
+select throws_ok(
+  $$ update connected_accounts set visibility = 'team' where id = '11111111-2222-0000-0000-000000000002' $$,
+  'new row violates row-level security policy for table "connected_accounts"',
+  'member session: a Member cannot widen their own account above Private'
 );
 reset role;
 
