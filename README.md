@@ -177,11 +177,11 @@ For a real deployment, Supabase Cloud's default mailer is also rate-limited and 
 
 ## Environments
 
-| Environment                  | Supabase                                   | Used by                                                      |
-| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------ |
-| Local (default)              | `npx supabase start` on your machine       | Day-to-day development and every test suite                  |
-| Dev (`mimus-dev`)            | Supabase Cloud, ref `rgxkhtcepnutvmkvvosm` | Vercel **Preview** and **Development** environment variables |
-| Production (`mimus-staging`) | Supabase Cloud, ref `kgaktvkwfdmrruejdodq` | Vercel **Production** only                                   |
+| Environment                  | Supabase                                   | Used by                                                                                           |
+| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Local (default)              | `npx supabase start` on your machine       | Day-to-day development and every test suite                                                       |
+| Dev (`mimus-dev`)            | Supabase Cloud, ref `rgxkhtcepnutvmkvvosm` | Vercel **Preview** and **Development** environment variables, served at `https://dev.getmimus.io` |
+| Production (`mimus-staging`) | Supabase Cloud, ref `kgaktvkwfdmrruejdodq` | Vercel **Production** only                                                                        |
 
 The local stack stays the default for development. `mimus-dev` holds only the synthetic data from `supabase/seed.sql` and has its own `TOKEN_ENCRYPTION_KEY`, so preview deployments never touch real customer data. To run your local app against it instead of the local stack, `npx vercel env pull .env.local --environment=development` (back up your `.env.local` first).
 
@@ -192,7 +192,20 @@ npx supabase link --project-ref rgxkhtcepnutvmkvvosm
 npx supabase db push --linked            # add --include-seed only on a fresh dev project
 ```
 
-**Never leave a developer machine linked to `mimus-staging`** (production). Link to it only for the deploy step below, and never run `db reset` or `--include-seed` against it. Dev Auth allows `http://127.0.0.1:3000/auth/callback` and `https://*-tech-2500.vercel.app/**` as redirect URLs.
+**Never leave a developer machine linked to `mimus-staging`** (production). Link to it only for the deploy step below, and never run `db reset` or `--include-seed` against it. Dev Auth allows `http://127.0.0.1:3000/auth/callback`, `https://*-tech-2500.vercel.app/**` and `https://dev.getmimus.io/**` as redirect URLs.
+
+**Deploying to dev.** `dev.getmimus.io` is a Preview domain (assigned to the `dev` branch in the Vercel project, so production deploys never move it). The project deploys from the CLI, so point it at each new preview by hand:
+
+```bash
+npx vercel deploy                                   # Preview build, mimus-dev env vars
+npx vercel alias set <preview-url> dev.getmimus.io
+```
+
+Notes for dev:
+
+- Calendly variables are set on **Preview only**, with `CALENDLY_OAUTH_REDIRECT_URI=https://dev.getmimus.io/api/connectors/calendly/callback` and `CALENDLY_WEBHOOK_URL=https://dev.getmimus.io/api/webhooks/calendly`. They are deliberately not on Development: `vercel env pull --environment=development` writes `.env.local`, and local Calendly needs the `localhost` redirect.
+- Vercel runs cron jobs on Production only. To poll Calendly on dev, call the route yourself with the Preview `CRON_SECRET`: `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://dev.getmimus.io/api/cron/poll-calendly`.
+- Preview deployments, custom domains included, are behind Vercel Deployment Protection. A browser signed in to the Vercel team gets through. Calendly's webhook calls and the `curl` above need the `x-vercel-protection-bypass` header or query parameter (Settings → Deployment Protection → Protection Bypass for Automation), unless protection is turned off for previews.
 
 ## Deploying to Vercel
 
@@ -222,7 +235,7 @@ The app deploys to Vercel as a standard Next.js project against the `mimus-stagi
 5. **Google Cloud Console.** Add `https://<your-app>.vercel.app/api/connectors/google/callback` to the OAuth client's Authorized redirect URIs. Add every demo user under Audience → Test users until the app is verified.
 6. **Redeploy** so the build picks up the variables, then smoke-test: sign in → Connect Google → Allow sending and booking → Ask → Propose meeting times → Approve. In Vercel's Settings → Cron Jobs, "Run" on each job should return 200.
 
-**Preview deployments.** Magic links work on previews if Supabase's Redirect URLs also allow `https://*-<your-team>.vercel.app/**`. Connecting accounts only works on the production domain, since each provider has one registered redirect URI.
+**Preview deployments.** Magic links work on previews if Supabase's Redirect URLs also allow `https://*-<your-team>.vercel.app/**`. Connecting accounts only works on a fixed domain registered with each provider: the production domain, or `dev.getmimus.io` for providers whose dev redirect URI is registered there (Calendly).
 
 **Still not live after deploying:** new mail streaming in. That needs the Pub/Sub topic and the push variables in "Outstanding setup" item 7–8. Until then, mail is imported once at connect.
 
@@ -235,7 +248,7 @@ Code-complete work the repo owner still needs to act on — nothing here blocks 
 3. ✅ **Google Cloud OAuth client** — done for local development (live-tested 2026-10-09: Gmail + Calendar connected and backfilled). For a new environment: [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → Credentials → OAuth client ID ("Web application"). Provide `GOOGLE_OAUTH_CLIENT_ID`/`GOOGLE_OAUTH_CLIENT_SECRET` and register redirect URI `http://127.0.0.1:3000/api/connectors/google/callback` (or your deployed equivalent).
 4. **Microsoft Entra app registration**, for live testing of the Microsoft connector — [entra.microsoft.com](https://entra.microsoft.com) → App registrations → New registration → multi-tenant ("Accounts in any organizational directory and personal Microsoft accounts"). Provide `MICROSOFT_OAUTH_CLIENT_ID`/`MICROSOFT_OAUTH_CLIENT_SECRET` and register redirect URI `http://127.0.0.1:3000/api/connectors/microsoft/callback`.
 5. **Slack app**, for live testing of the Slack connector — see "Enabling Slack for users" under "Slack connector" above for the scopes, redirect URLs and distribution setting. Provide `SLACK_CLIENT_ID`/`SLACK_CLIENT_SECRET`, plus the Signing Secret from Basic Information for `SLACK_SIGNING_SECRET`. No bot token is needed: each Slack workspace's bot token is captured when someone connects it.
-6. **Calendly OAuth app**, for live testing of the Calendly connector — [developer.calendly.com](https://developer.calendly.com) → My Apps → Create new app (Web). Provide `CALENDLY_CLIENT_ID`/`CALENDLY_CLIENT_SECRET` and register redirect URI `http://localhost:3000/api/connectors/calendly/callback` (Calendly refuses plain HTTP on any other host, `127.0.0.1` included). Open the app at `http://localhost:3000` to connect Calendly, so the sign-in cookie and the callback share a host. Production needs its own Calendly app with the HTTPS callback.
+6. **Calendly OAuth app**, for live testing of the Calendly connector — [developer.calendly.com](https://developer.calendly.com) → My Apps → Create new app (Web). Provide `CALENDLY_CLIENT_ID`/`CALENDLY_CLIENT_SECRET` and register redirect URI `http://localhost:3000/api/connectors/calendly/callback` (Calendly refuses plain HTTP on any other host, `127.0.0.1` included). Open the app at `http://localhost:3000` to connect Calendly, so the sign-in cookie and the callback share a host. Dev uses `https://dev.getmimus.io/api/connectors/calendly/callback` (see "Deploying to dev"), and production needs its own Calendly app with the HTTPS callback.
 7. **Google Cloud Pub/Sub topic**, for live Gmail push notifications (not needed for OAuth or backfill) — a topic plus a publish IAM binding for `gmail-api-push@system.gserviceaccount.com`. Set `GOOGLE_PUBSUB_TOPIC`.
 8. **A deployed public HTTPS URL** — see "Deploying to Vercel" above for getting one; the cron jobs are already scheduled in `vercel.json`. Required before any provider's webhook subscription can be registered or configured at all (Gmail `watch()`, Graph `/subscriptions`, Slack's Event Subscriptions Request URL set once in the Slack app dashboard from item 5, and Calendly's per-account subscriptions registered automatically after connect), and before the renewal cron (`app/api/cron/renew-watches`) can actually be scheduled against anything. The webhook/renewal code itself is done (see "Push notifications and renewal" and the Calendly connector section above) — this is the one thing blocking all of it from running for real. Once it exists: set `GOOGLE_PUBSUB_AUDIENCE`, `MICROSOFT_GRAPH_NOTIFICATION_URL`, `MICROSOFT_GRAPH_CLIENT_STATE`, `CALENDLY_WEBHOOK_URL`, and `CALENDLY_WEBHOOK_SIGNING_KEY` and `CRON_SECRET`, point the Slack app's Event Subscriptions at `<your-url>/api/webhooks/slack/events`, and the daily `/api/cron/renew-watches` job in `vercel.json` keeps the watches alive (daily is enough margin for Gmail/Graph's renewal windows). Calendly's subscriptions don't expire, so they're registered once automatically right after connect (`app/api/connectors/calendly/callback/route.ts`) rather than needing this cron at all — see the note under "Calendly connector" above.
 
