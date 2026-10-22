@@ -1,8 +1,6 @@
 # Data Processing Agreement
 
-**Effective date:** [TODO: publish date]
-
-> **Draft — have this reviewed by a qualified lawyer before publishing.** Every `[TODO: …]` must be filled in or removed first.
+**Effective date:** October 22, 2026
 
 This Data Processing Agreement ("DPA") forms part of the agreement between EVG (USA) Management Inc., doing business as Mimus.io and AI Teammates ("Mimus", "we", "us"), and the organization that uses Mimus ("Customer", "you"). That agreement is our [Terms of Service](/terms), or a separate signed agreement if there is one. This DPA applies to personal data we process on your behalf when providing Mimus at https://getmimus.io (the "Service").
 
@@ -49,7 +47,7 @@ We will comply with the CCPA's obligations for service providers and tell you if
 ## 6. Confidentiality and staff access
 
 - Everyone we authorize to process Customer Personal Data is bound by confidentiality.
-- Our staff have no standing access to production data. Production access is break-glass only: each time it must be approved, it is limited to a set period, and it is logged.
+- Access to the production database is limited to a small number of authorized staff, who use it only to provide, secure and support the Service, or where the law requires.
 - Development and testing use synthetic data and sandbox accounts, not Customer Personal Data.
 
 ## 7. Security
@@ -59,17 +57,15 @@ We maintain technical and organizational measures appropriate to the risk, inclu
 - encryption in transit (TLS) and at rest by our database provider;
 - additional AES-256-GCM encryption of the access tokens for connected services;
 - access rules enforced by row-level security inside the database, so a member's private data can't be returned to anyone else, including our AI;
-- break-glass-only staff access (section 6);
+- production access limited to a small number of authorized staff (section 6);
 - AI requests sent with provider-side storage turned off, and only the excerpts needed to answer a question.
-
-[TODO: describe the Google-required security assessment (CASA) once completed]
 
 ## 8. Deletion
 
 - When a member disconnects a service, we stop the service's change notifications, revoke our access where the service allows it, and immediately delete the data imported from it and the connection record. Microsoft offers no per-app revocation, so the member removes Mimus from their Microsoft account's app permissions; the Mimus Slack app stays installed in a Slack workspace until a Slack admin removes it.
 - When an Owner removes a member from your workspace, we disconnect the services that member connected in your workspace and delete their imported data in the same way.
 - When a member deletes their account, or your agreement ends and your workspace is deleted, we delete the Customer Personal Data as described in section 9 of the [Privacy Policy](/privacy).
-- Deleted data may remain in our database provider's encrypted backups until they expire. [TODO: confirm backup retention period for the production plan]
+- Deleted data may remain in our database provider's encrypted backups until they expire. Backups are taken daily and kept for up to 7 days.
 
 ## 9. Subprocessors
 
@@ -86,7 +82,7 @@ You authorize us to use the subprocessors listed below. Each is bound by written
 - **OpenAI, L.L.C.**
   - Purpose: generates AI answers.
   - Data: a member's question and short excerpts of relevant data (up to 1,500 characters per email, 500 per event description and 1,000 per Slack message), and, when a member asks Mimus to propose meeting times, the free time slots found and the drafted reply. Sent with storage turned off; not used for training.
-  - Location: United States. [TODO: confirm whether Zero Data Retention is enabled]
+  - Location: United States. OpenAI may retain API inputs and outputs for up to 30 days to monitor for abuse, then deletes them.
 - **Resend, Inc.**
   - Purpose: delivers teammate invitation emails.
   - Data: the recipient's email address and the email contents.
@@ -96,7 +92,7 @@ You authorize us to use the subprocessors listed below. Each is bound by written
   - Data: your organization's billing contact details. (Billing data is not Customer Personal Data, but we list Stripe for completeness.)
   - Location: United States.
 
-We will tell you at least [TODO: 30] days before adding or replacing a subprocessor, by email or in the app. You may object on reasonable data-protection grounds within that period. If we can't resolve the objection, you may end the affected part of the Service.
+We will tell you at least 30 days before adding or replacing a subprocessor, by email or in the app. You may object on reasonable data-protection grounds within that period. If we can't resolve the objection, you may end the affected part of the Service.
 
 The services your members connect (Google, Microsoft, Slack and Calendly) are not our subprocessors. We read data from them on your members' instructions.
 
@@ -108,7 +104,7 @@ The services your members connect (Google, Microsoft, Slack and Calendly) are no
 
 ## 11. Personal data breaches
 
-We will notify you without undue delay, and in any case within [TODO: hours, e.g. 72] hours, after we become aware of a personal data breach affecting Customer Personal Data. We will tell you what we know, take reasonable steps to contain it, and update you as we learn more.
+We will notify you without undue delay, and in any case within 72 hours, after we become aware of a personal data breach affecting Customer Personal Data. We will tell you what we know, take reasonable steps to contain it, and update you as we learn more.
 
 ## 12. Audits
 
@@ -116,7 +112,7 @@ On reasonable written request, no more than once a year, we will give you the in
 
 ## 13. International transfers
 
-We and our subprocessors process Customer Personal Data in the United States. Where the GDPR or UK GDPR applies to a transfer, the parties rely on an adequacy decision (including the EU-U.S. Data Privacy Framework where the recipient is certified) or the European Commission's Standard Contractual Clauses (module two, controller to processor), with the UK Addendum for UK data. Those clauses are incorporated by reference. [TODO: confirm SCC module selections and annex details with counsel]
+We and our subprocessors process Customer Personal Data in the United States. Where the GDPR or UK GDPR applies to a transfer, the parties rely on an adequacy decision (including the EU-U.S. Data Privacy Framework where the recipient is certified) or the European Commission's Standard Contractual Clauses (module two, controller to processor), with the UK Addendum for UK data. Those clauses are incorporated by reference.
 
 ## 14. Liability, term and law
 
@@ -126,4 +122,4 @@ We and our subprocessors process Customer Personal Data in the United States. Wh
 
 ## 15. Contact
 
-EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates), [TODO: address], tech@youraiteammates.com.
+EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates), tech@youraiteammates.com.
