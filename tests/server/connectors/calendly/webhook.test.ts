@@ -162,12 +162,17 @@ describe('calendly webhook', () => {
       const { workspaceId, connectedAccountId } = await makeConnectedAccount();
 
       mockCalendlyApi((url) => {
+        // Calendly wraps a single fetched resource, unlike list responses'
+        // `collection` items.
         if (url.pathname === '/scheduled_events/evt-1') {
           return {
-            uri: 'https://api.calendly.com/scheduled_events/evt-1',
-            name: 'Re-synced meeting',
-            start_time: '2024-03-15T15:00:00.000000Z',
-            end_time: '2024-03-15T15:30:00.000000Z',
+            resource: {
+              uri: 'https://api.calendly.com/scheduled_events/evt-1',
+              name: 'Re-synced meeting',
+              status: 'active',
+              start_time: '2024-03-15T15:00:00.000000Z',
+              end_time: '2024-03-15T15:30:00.000000Z',
+            },
           };
         }
         if (url.pathname === '/scheduled_events/evt-1/invitees') {
@@ -195,11 +200,16 @@ describe('calendly webhook', () => {
 
       const { data: events } = await supabase
         .from('events')
-        .select('title')
+        .select('title, provider_event_id, starts_at, status')
         .eq('connected_account_id', connectedAccountId)
         .throwOnError();
       expect(events).toHaveLength(1);
       expect(events![0].title).toBe('Re-synced meeting');
+      expect(events![0].provider_event_id).toBe('https://api.calendly.com/scheduled_events/evt-1');
+      expect(new Date(events![0].starts_at as string).toISOString()).toBe(
+        '2024-03-15T15:00:00.000Z',
+      );
+      expect(events![0].status).toBe('active');
       void workspaceId;
     });
   });

@@ -116,7 +116,12 @@ export async function syncOneCalendlyEvent(
   accessToken: string,
   eventUri: string,
 ): Promise<NormalizedEvent> {
-  const event = await calendlyGet<CalendlyScheduledEvent>(accessToken, eventUri);
+  // A single fetched resource comes wrapped as `{ resource }`, unlike the
+  // `collection` items the backfill loop lists.
+  const { resource: event } = await calendlyGet<{ resource: CalendlyScheduledEvent }>(
+    accessToken,
+    eventUri,
+  );
   const invitees = await fetchAllInvitees(accessToken, eventUri);
   return normalizeCalendlyEvent(event, invitees);
 }
