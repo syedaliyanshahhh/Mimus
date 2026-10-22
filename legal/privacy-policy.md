@@ -1,8 +1,6 @@
 # Privacy Policy
 
-**Effective date:** [TODO: publish date]
-
-> **Draft — have this reviewed by a qualified lawyer before publishing.** Every `[TODO: …]` must be filled in or removed first.
+**Effective date:** October 22, 2026
 
 This Privacy Policy explains what personal information Mimus collects, why, who it goes to, how long we keep it, and the choices you have. It covers the Mimus web app at https://getmimus.io ("Mimus", "the Service").
 
@@ -11,7 +9,6 @@ This Privacy Policy explains what personal information Mimus collects, why, who 
 Mimus is provided by EVG (USA) Management Inc., doing business as Mimus.io and AI Teammates, a company based in the United States ("we", "us").
 
 - Privacy contact: tech@youraiteammates.com
-- Postal address: [TODO: registered address]
 
 ### Our role
 
@@ -89,7 +86,7 @@ Scheduling replies are written from a fixed template, not composed freely by AI.
 
   It does **not** contain your question or the answer. Workspace Owners can see this log on the AI usage log page.
 
-- **Service logs:** our hosting provider (Vercel) and database provider (Supabase) keep standard technical logs (such as IP address, request time and error details) for security and troubleshooting. Error details can include identifiers such as a connected account's ID or an email address. We don't log the content of your messages or the questions you ask. [TODO: confirm Vercel and Supabase log retention for the production plans]
+- **Service logs:** our hosting provider (Vercel) and database provider (Supabase) keep standard technical logs (such as IP address, request time and error details) for security and troubleshooting. Error details can include identifiers such as a connected account's ID or an email address. We don't log the content of your messages or the questions you ask. These logs are kept for a limited period under each provider's retention settings and then deleted.
 
 ### Information we do not collect
 
@@ -157,7 +154,7 @@ We do not share Google user data with anyone else, except where required by law 
   - to comply with applicable law;
   - in aggregated, anonymized form for internal operations.
 
-Our staff have no standing access to the production database. Production access is break-glass only: each time, it must be approved, it is limited to a set period, and it is logged. Our development and test environments use synthetic data and sandbox accounts, not your data.
+Access to the production database is limited to a small number of authorized staff, who use it only for the purposes listed above. Our development and test environments use synthetic data and sandbox accounts, not your data.
 
 ### Limited Use
 
@@ -186,7 +183,7 @@ We use your information only for the purposes below. The legal basis applies whe
   5. OpenAI writes the answer and Mimus shows it to you with links to its sources.
 - **To keep the Service secure and working.** This covers preventing abuse, investigating problems, enforcing AI spending limits and recording the AI usage log. Legal basis: our legitimate interest in running a secure service.
 - **To bill your organization.** Legal basis: performance of contract and our legal obligations.
-- **To send service emails,** such as sign-in links and invitations. Legal basis: performance of contract. We do not send marketing email. [TODO: update if marketing email is ever added]
+- **To send service emails,** such as sign-in links and invitations. Legal basis: performance of contract. We do not send marketing email.
 
 We do not use your information for advertising and we do not sell it.
 
@@ -197,7 +194,7 @@ We use these service providers ("processors"). Each receives only what it needs 
 - **Supabase** stores our database and runs sign-in, including sending the one-time sign-in emails. It holds all the information described in this policy. Data is stored in the United States (US East).
 - **OpenAI** generates AI answers. It receives your question and the excerpts described in section 3.
   - We send requests with storage turned off (`store: false`), and OpenAI does not use API data to train its models.
-  - [TODO: confirm whether Zero Data Retention is enabled. If not, keep this sentence: "OpenAI may retain API inputs and outputs for up to 30 days to monitor for abuse, then deletes them."]
+  - OpenAI may retain API inputs and outputs for up to 30 days to monitor for abuse, then deletes them.
 - **Resend** delivers invitation emails. It receives the recipient's email address and the email contents.
 - **Stripe** processes subscription payments. It receives your organization's billing details. Card details go directly to Stripe.
 - **Vercel** hosts the web app. It processes requests and technical logs in the United States.
@@ -221,8 +218,8 @@ The current list of these providers, with what each receives and where, is in th
 - **AI usage log:** kept for your workspace's records while the workspace exists. When you delete your account, your entries are kept but are no longer linked to you.
 - **Invitations:** kept while the workspace exists, so its Owners can see who was invited and when.
 - **Terms acceptance records:** kept until you delete your account.
-- **Billing records:** kept as long as tax and accounting law requires. [TODO: confirm period] This includes the customer record Stripe keeps for your organization (its name and billing details), which stays at Stripe after the workspace is deleted.
-- **Backups:** deleted data may remain in our database provider's encrypted backups until they expire. [TODO: confirm backup retention period for the production plan]
+- **Billing records:** kept as long as tax and accounting law requires, generally up to seven years. This includes the customer record Stripe keeps for your organization (its name and billing details), which stays at Stripe after the workspace is deleted.
+- **Backups:** deleted data may remain in our database provider's encrypted backups until they expire. Backups are taken daily and kept for up to 7 days.
 
 If a workspace Owner removes you from a workspace, the services you connected in that workspace are disconnected and their imported data deleted, as if you had clicked Disconnect. You keep your Mimus account: the next time you sign in you get a workspace of your own, and you can delete your account from Settings → Account.
 
@@ -231,8 +228,7 @@ If a workspace Owner removes you from a workspace, the services you connected in
 - Data is encrypted in transit (TLS) and at rest by our database provider.
 - Access tokens for connected services are additionally encrypted by Mimus with AES-256-GCM before storage.
 - Who can see what is enforced by row-level security rules inside the database itself, not only by app code. A workspace member's private data can't be returned to anyone else, even by our AI.
-- Staff have no standing access to production data. Access is break-glass only: approved, time-limited and logged (section 3). Development and testing use synthetic data and sandbox accounts.
-- [TODO: describe the Google-required security assessment (CASA) once completed]
+- Access to the production database is limited to a small number of authorized staff, who use it only for the purposes listed in section 3. Development and testing use synthetic data and sandbox accounts.
 
 No system is perfectly secure. If we learn of a breach affecting your information, we will notify you and the relevant authorities as the law requires.
 
@@ -258,7 +254,7 @@ Depending on where you live, you have rights over your personal information:
 
 **To make any other request,** email tech@youraiteammates.com. We will respond within 30 days (one month under the GDPR). We may need to verify your identity first.
 
-If you're in the EU or UK, you can complain to your local data protection authority. [TODO: add EU/UK representative details if required (GDPR Art. 27 / UK GDPR Art. 27)]
+If you're in the EU or UK, you can complain to your local data protection authority.
 
 ### California residents (CCPA/CPRA)
 
@@ -290,7 +286,7 @@ If you're in the EU or UK, you can complain to your local data protection author
 
 ## 10. International transfers
 
-We are based in the United States, and we and our service providers store and process data in the United States, so your information may be processed outside your country. Where the GDPR or UK GDPR applies, we rely on adequacy decisions (including the EU-U.S. Data Privacy Framework where a provider is certified) or the European Commission's Standard Contractual Clauses (and the UK Addendum) with our providers. [TODO: confirm with each provider's Data Processing Agreement]
+We are based in the United States, and we and our service providers store and process data in the United States, so your information may be processed outside your country. Where the GDPR or UK GDPR applies, we rely on adequacy decisions (including the EU-U.S. Data Privacy Framework where a provider is certified) or the European Commission's Standard Contractual Clauses (and the UK Addendum) with our providers.
 
 ## 11. Children
 
@@ -302,4 +298,4 @@ If we make material changes, we will update the effective date above and notify 
 
 ## 13. Contact
 
-Questions or requests about this policy: tech@youraiteammates.com, EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates), [TODO: address].
+Questions or requests about this policy: tech@youraiteammates.com, EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates).

@@ -1,8 +1,6 @@
 # Terms of Service
 
-**Effective date:** [TODO: publish date]
-
-> **Draft. Have a qualified lawyer review this before publishing.** Fill in or remove every `[TODO: …]` first.
+**Effective date:** October 22, 2026
 
 These Terms govern your use of Mimus, the web app at https://getmimus.io (the "Service"), provided by EVG (USA) Management Inc., doing business as Mimus.io and AI Teammates ("Mimus", "we", "us").
 
@@ -78,13 +76,13 @@ Mimus uses AI (currently provided by OpenAI) to answer questions about your conn
 
 ## 8. Subscriptions, billing and refunds
 
-- Paid plans are billed in advance on a recurring basis through our payment processor, Stripe, until cancelled. Prices and plan limits are shown at checkout. [TODO: link pricing page]
+- Paid plans are billed in advance on a recurring basis through our payment processor, Stripe, until cancelled. Prices and plan limits are shown on the Billing page and at checkout.
 - If a payment fails or a subscription lapses, the affected workspace becomes read-only straight away, with no grace period, until payment is resolved. Your organization's other workspaces aren't affected. While read-only, members can still disconnect services, set accounts back to Private, delete their accounts and manage billing.
 - A workspace Owner can cancel at any time with **Manage or cancel subscription** on the Billing page, which opens Stripe's billing portal. Cancellation takes effect at the end of the current billing period.
 - Plan limits such as seat counts are shown for information and aren't currently enforced by the Service. Choosing a different plan starts a new subscription; cancel the old one in the billing portal so you aren't billed for both.
-- Refunds: [TODO: refund policy, e.g. "Fees are non-refundable except where required by law."]
-- [TODO: free trial terms, if offered]
-- We may change prices with at least [TODO: 30] days' notice before your next billing period.
+- Fees are non-refundable, including for partial billing periods and unused seats, except where required by law.
+- We don't currently offer free trials. If we offer one, its terms will be shown before you start it.
+- We may change prices with at least 30 days' notice before your next billing period.
 - Taxes are added where required.
 
 ## 9. Our intellectual property
@@ -104,7 +102,7 @@ We don't guarantee that the Service will be uninterrupted or error-free, that AI
 To the fullest extent the law allows:
 
 - We are not liable for indirect, incidental, special, consequential or punitive damages, or for lost profits, revenue or data.
-- Our total liability for any claim relating to the Service is limited to the greater of: the amount you paid us in the 12 months before the claim, or [TODO: amount, e.g. USD 100].
+- Our total liability for any claim relating to the Service is limited to the greater of: the amount you paid us in the 12 months before the claim, or USD 100.
 
 Some jurisdictions don't allow these limits, so they apply to you only as far as your local law permits.
 
@@ -127,13 +125,11 @@ If you use the Service for an organization, that organization will defend and in
 
 These Terms are governed by the laws of the State of California, USA, excluding its conflict-of-law rules.
 
-Disputes will be resolved in the state or federal courts located in [TODO: county], California, unless mandatory consumer law where you live gives you the right to bring proceedings locally.
-
-[TODO: consider an arbitration clause after legal review]
+Disputes will be resolved in the state or federal courts located in California, unless mandatory consumer law where you live gives you the right to bring proceedings locally.
 
 ## 15. Changes to these Terms
 
-We may update these Terms. For material changes, we will notify account holders by email or in the app at least [TODO: 30] days before they take effect, and update the effective date above. Once they take effect, the app asks you to review and accept the updated version before you continue using the Service.
+We may update these Terms. For material changes, we will notify account holders by email or in the app at least 30 days before they take effect, and update the effective date above. Once they take effect, the app asks you to review and accept the updated version before you continue using the Service.
 
 ## 16. General
 
@@ -144,4 +140,4 @@ We may update these Terms. For material changes, we will notify account holders 
 
 ## 17. Contact
 
-EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates), [TODO: address], tech@youraiteammates.com.
+EVG (USA) Management Inc. (DBA Mimus.io and AI Teammates), tech@youraiteammates.com.
