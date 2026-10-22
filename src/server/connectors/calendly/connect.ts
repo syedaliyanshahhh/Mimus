@@ -41,7 +41,58 @@ export async function completeCalendlyConnection(params: {
 
   const schedulingUrl = await fetchSchedulingUrl(tokens.accessToken);
 
+  const secret = {
+    encrypted_access_token: bufferToPgBytea(encryptedAccessToken),
+    encrypted_refresh_token: bufferToPgBytea(encryptedRefreshToken),
+    key_version: keyVersion,
+  };
+
   const supabase = createServiceClient();
+
+  // Reconnecting a Calendly user this user already has connected (e.g.
+  // after needs_reauth) refreshes that row in place -- keeping its id,
+  // visibility, synced events and webhook subscription -- instead of
+  // adding a duplicate. A different Calendly user gets its own row.
+  const { data: existing } = await supabase
+    .from('connected_accounts')
+    .select('id')
+    .eq('workspace_id', params.workspaceId)
+    .eq('owner_user_id', params.userId)
+    .eq('provider', 'calendly')
+    .eq('external_account_id', tokens.ownerUri)
+    .neq('status', 'disconnected')
+    .limit(1)
+    .maybeSingle()
+    .throwOnError();
+
+  if (existing) {
+    const { data: account } = await supabase
+      .from('connected_accounts')
+      .update({
+        status: 'connected',
+        provider_team_id: tokens.organizationUri,
+        // A failed read keeps the link already stored.
+        ...(schedulingUrl ? { scheduling_url: schedulingUrl } : {}),
+      })
+      .eq('id', existing.id)
+      .select('*')
+      .single()
+      .throwOnError();
+
+    // updated_at is when this token pair was issued (client.ts's
+    // getValidAccessToken refreshes by it), so it's set explicitly here.
+    await supabase
+      .from('connected_account_secrets')
+      .upsert({
+        connected_account_id: existing.id,
+        ...secret,
+        updated_at: new Date().toISOString(),
+      })
+      .throwOnError();
+
+    return [account as ConnectedAccountRow];
+  }
+
   const { data: account } = await supabase
     .from('connected_accounts')
     .insert({
@@ -60,12 +111,7 @@ export async function completeCalendlyConnection(params: {
 
   await supabase
     .from('connected_account_secrets')
-    .insert({
-      connected_account_id: account!.id,
-      encrypted_access_token: bufferToPgBytea(encryptedAccessToken),
-      encrypted_refresh_token: bufferToPgBytea(encryptedRefreshToken),
-      key_version: keyVersion,
-    })
+    .insert({ connected_account_id: account!.id, ...secret })
     .throwOnError();
 
   return [account as ConnectedAccountRow];

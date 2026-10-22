@@ -123,6 +123,26 @@ describe('calendly webhook', () => {
         'https://api.calendly.com/webhook_subscriptions/sub-1',
       );
     });
+
+    it('leaves an existing subscription alone instead of creating a second one', async () => {
+      const { connectedAccountId } = await makeConnectedAccount();
+      await supabase
+        .from('connected_accounts')
+        .update({ watch_channel_id: 'https://api.calendly.com/webhook_subscriptions/sub-1' })
+        .eq('id', connectedAccountId)
+        .throwOnError();
+      const apiCalls: URL[] = [];
+      mockCalendlyApi((url) => {
+        apiCalls.push(url);
+        return { resource: { uri: 'https://api.calendly.com/webhook_subscriptions/sub-2' } };
+      });
+
+      // Reconnecting runs registration again, and a Calendly subscription
+      // never expires, so the first one still delivers.
+      await registerCalendlyWebhook(connectedAccountId);
+
+      expect(apiCalls).toHaveLength(0);
+    });
   });
 
   describe('handleCalendlyWebhook', () => {

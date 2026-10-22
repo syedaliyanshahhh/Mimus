@@ -34,7 +34,11 @@ describe('calendly oauth', () => {
   });
 
   it('throws a clear error (not a network call) when Calendly OAuth env vars are unset', async () => {
-    vi.unstubAllEnvs();
+    // Blanked rather than unstubbed: a developer's .env.local may hold real
+    // credentials.
+    vi.stubEnv('CALENDLY_CLIENT_ID', '');
+    vi.stubEnv('CALENDLY_CLIENT_SECRET', '');
+    vi.stubEnv('CALENDLY_OAUTH_REDIRECT_URI', '');
     await expect(getAuthUrl('x')).rejects.toThrow(/Calendly OAuth is not configured/);
   });
 

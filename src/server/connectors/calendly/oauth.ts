@@ -72,6 +72,18 @@ interface CalendlyTokenResponse {
   error_description?: string;
 }
 
+// Carries Calendly's OAuth error code, so callers can tell a revoked grant
+// (invalid_grant: the user has to reconnect) from a passing outage.
+export class CalendlyTokenError extends Error {
+  constructor(
+    readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'CalendlyTokenError';
+  }
+}
+
 async function requestToken(body: Record<string, string>): Promise<ExchangedCalendlyTokens> {
   const { clientId, clientSecret } = requireOAuthConfig();
   const response = await fetch(`${AUTH_BASE}/oauth/token`, {
@@ -82,7 +94,8 @@ async function requestToken(body: Record<string, string>): Promise<ExchangedCale
 
   const data = (await response.json()) as CalendlyTokenResponse;
   if (!response.ok) {
-    throw new Error(
+    throw new CalendlyTokenError(
+      data.error ?? String(response.status),
       `Calendly token exchange failed: ${data.error ?? response.status} ${data.error_description ?? ''}`.trim(),
     );
   }

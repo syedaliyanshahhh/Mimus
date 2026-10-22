@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/src/db/service';
-import { calendlyGet, getDecryptedAccessToken } from '@/src/server/connectors/calendly/client';
+import { calendlyGet, getValidAccessToken } from '@/src/server/connectors/calendly/client';
 import type { NormalizedEvent } from '@/src/server/shared/normalize';
 import { upsertEvent } from '@/src/server/shared/normalize';
 
@@ -138,7 +138,7 @@ export async function syncCalendlyAccount(connectedAccountId: string): Promise<v
   const workspaceId = account.workspace_id as string;
   const ownerUri = account.external_account_id as string;
 
-  const accessToken = await getDecryptedAccessToken(connectedAccountId);
+  const accessToken = await getValidAccessToken(connectedAccountId);
   const minStartTime = new Date(Date.now() - PAST_WINDOW_MS).toISOString();
   const maxStartTime = new Date(Date.now() + FUTURE_WINDOW_MS).toISOString();
 
