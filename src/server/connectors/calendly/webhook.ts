@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/src/db/service';
-import { getDecryptedAccessToken } from '@/src/server/connectors/calendly/client';
+import { getValidAccessToken } from '@/src/server/connectors/calendly/client';
 import { verifyCalendlySignature } from '@/src/server/connectors/calendly/signature';
 import { syncOneCalendlyEvent } from '@/src/server/connectors/calendly/sync';
 import { upsertEvent } from '@/src/server/shared/normalize';
@@ -31,15 +31,18 @@ export async function registerCalendlyWebhook(connectedAccountId: string): Promi
   const supabase = createServiceClient();
   const { data: account, error } = await supabase
     .from('connected_accounts')
-    .select('external_account_id, provider_team_id')
+    .select('external_account_id, provider_team_id, watch_channel_id')
     .eq('id', connectedAccountId)
     .single();
   if (error) throw error;
+  // Already subscribed: a reconnect runs this again, and a Calendly
+  // subscription never expires, so the existing one still delivers.
+  if (account.watch_channel_id) return;
   if (!account.provider_team_id) {
     throw new Error(`Connected account ${connectedAccountId} has no stored organization URI`);
   }
 
-  const accessToken = await getDecryptedAccessToken(connectedAccountId);
+  const accessToken = await getValidAccessToken(connectedAccountId);
   const callbackUrl = new URL(webhookUrl);
   callbackUrl.searchParams.set('account', connectedAccountId);
 
@@ -107,7 +110,7 @@ export async function handleCalendlyWebhook(request: Request): Promise<Response>
     if (error) throw error;
 
     if (account.status === 'connected') {
-      const accessToken = await getDecryptedAccessToken(connectedAccountId);
+      const accessToken = await getValidAccessToken(connectedAccountId);
       const normalized = await syncOneCalendlyEvent(accessToken, eventUri);
       await upsertEvent(account.workspace_id as string, connectedAccountId, normalized);
     }

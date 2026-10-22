@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/src/db/service';
 import { completeCalendlyConnection } from '@/src/server/connectors/calendly/connect';
-import { pgByteaToBuffer } from '@/src/server/crypto/tokenVault';
+import { decryptToken, pgByteaToBuffer } from '@/src/server/crypto/tokenVault';
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -126,5 +126,65 @@ describe('completeCalendlyConnection', () => {
 
     expect(row.status).toBe('connected');
     expect(fetchSpy).toHaveBeenCalled();
+  });
+
+  it('reconnecting the same Calendly user updates its row instead of adding another', async () => {
+    const { workspaceId, userId } = await makeWorkspace();
+    const [first] = await completeCalendlyConnection({ workspaceId, userId, code: 'fake-code' });
+    // What the user changed, and what a refused refresh does, before
+    // they reconnect.
+    await supabase
+      .from('connected_accounts')
+      .update({ visibility: 'team', status: 'needs_reauth' })
+      .eq('id', first.id)
+      .throwOnError();
+    vi.mocked(exchangeCode).mockResolvedValueOnce({
+      accessToken: 'access-456',
+      refreshToken: 'refresh-456',
+      expiresIn: 7200,
+      ownerUri: 'https://api.calendly.com/users/abc',
+      organizationUri: 'https://api.calendly.com/organizations/def',
+    });
+
+    const [second] = await completeCalendlyConnection({ workspaceId, userId, code: 'fake-code' });
+
+    expect(second.id).toBe(first.id);
+    expect(second.status).toBe('connected');
+    expect(second.visibility).toBe('team');
+    const { data: rows } = await supabase
+      .from('connected_accounts')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('provider', 'calendly')
+      .throwOnError();
+    expect(rows).toHaveLength(1);
+
+    const { data: secret } = await supabase
+      .from('connected_account_secrets')
+      .select('encrypted_access_token, key_version')
+      .eq('connected_account_id', first.id)
+      .single()
+      .throwOnError();
+    const accessToken = await decryptToken(
+      pgByteaToBuffer(secret!.encrypted_access_token as string),
+      secret!.key_version,
+    );
+    expect(accessToken).toBe('access-456');
+  });
+
+  it('connecting a different Calendly user adds its own row', async () => {
+    const { workspaceId, userId } = await makeWorkspace();
+    const [first] = await completeCalendlyConnection({ workspaceId, userId, code: 'fake-code' });
+    vi.mocked(exchangeCode).mockResolvedValueOnce({
+      accessToken: 'access-456',
+      refreshToken: 'refresh-456',
+      expiresIn: 7200,
+      ownerUri: 'https://api.calendly.com/users/other',
+      organizationUri: 'https://api.calendly.com/organizations/def',
+    });
+
+    const [second] = await completeCalendlyConnection({ workspaceId, userId, code: 'fake-code' });
+
+    expect(second.id).not.toBe(first.id);
   });
 });

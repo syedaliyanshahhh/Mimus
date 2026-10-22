@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/src/db/service';
+import { CalendlyTokenError, refreshAndStoreTokens } from '@/src/server/connectors/calendly/oauth';
 import { decryptToken, pgByteaToBuffer } from '@/src/server/crypto/tokenVault';
 
 const API_BASE = 'https://api.calendly.com';
@@ -28,11 +29,15 @@ export async function calendlyGet<T>(
   return response.json() as Promise<T>;
 }
 
-export async function getDecryptedAccessToken(connectedAccountId: string): Promise<string> {
-  const supabase = createServiceClient();
-  const { data: secret, error } = await supabase
+// Calendly access tokens last two hours. Refreshing this long before
+// expiry leaves a sync that starts with the token enough time to finish
+// with it.
+const REFRESH_AFTER_MS = 90 * 60 * 1000;
+
+async function readStoredAccessToken(connectedAccountId: string) {
+  const { data: secret, error } = await createServiceClient()
     .from('connected_account_secrets')
-    .select('encrypted_access_token, key_version')
+    .select('encrypted_access_token, key_version, updated_at')
     .eq('connected_account_id', connectedAccountId)
     .single();
   if (error) throw error;
@@ -40,5 +45,43 @@ export async function getDecryptedAccessToken(connectedAccountId: string): Promi
     throw new Error(`No stored Calendly credentials for connected account ${connectedAccountId}`);
   }
 
-  return decryptToken(pgByteaToBuffer(secret.encrypted_access_token as string), secret.key_version);
+  const accessToken = await decryptToken(
+    pgByteaToBuffer(secret.encrypted_access_token as string),
+    secret.key_version,
+  );
+  return { accessToken, storedAt: secret.updated_at as string };
+}
+
+// The access token to call Calendly with, refreshed first when it's near
+// expiry. connected_account_secrets.updated_at is when the current pair
+// was issued: connect, reconnect and refresh all rewrite it.
+export async function getValidAccessToken(connectedAccountId: string): Promise<string> {
+  const stored = await readStoredAccessToken(connectedAccountId);
+  if (Date.now() - new Date(stored.storedAt).getTime() < REFRESH_AFTER_MS) {
+    return stored.accessToken;
+  }
+
+  try {
+    await refreshAndStoreTokens(connectedAccountId);
+  } catch (err) {
+    // Calendly rotates the refresh token on every use, so when two runs
+    // refresh at once (a webhook landing mid-poll), the slower one is
+    // refused -- after the faster one stored a working pair.
+    const latest = await readStoredAccessToken(connectedAccountId);
+    if (latest.storedAt !== stored.storedAt) {
+      return latest.accessToken;
+    }
+    // A refused refresh token means the grant is gone (revoked in
+    // Calendly, or the app's access removed): only reconnecting fixes it.
+    if (err instanceof CalendlyTokenError && err.code === 'invalid_grant') {
+      await createServiceClient()
+        .from('connected_accounts')
+        .update({ status: 'needs_reauth' })
+        .eq('id', connectedAccountId)
+        .throwOnError();
+    }
+    throw err;
+  }
+
+  return (await readStoredAccessToken(connectedAccountId)).accessToken;
 }

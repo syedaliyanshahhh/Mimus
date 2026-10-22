@@ -1,5 +1,5 @@
 import { isGoogleConfigured, isSlackConfigured } from '@/src/server/connectors/bootstrap';
-import { connectionLabel } from '@/src/server/connectors/labels';
+import { connectionIdentifier, connectionLabel } from '@/src/server/connectors/labels';
 import { canSendAndBook } from '@/src/server/connectors/writeScopes';
 import type { AccountType, Provider } from '@/src/server/connectors/types';
 import { getCurrentWorkspaceContext } from '@/src/server/workspaces/getCurrentWorkspaceContext';
@@ -23,6 +23,7 @@ interface AccountRow {
   external_account_id: string | null;
   provider_team_name: string | null;
   provider_team_domain: string | null;
+  scheduling_url: string | null;
   visibility: 'private' | 'team' | 'company';
   status: 'connected' | 'needs_reauth';
   // Mirror update_connected_accounts (migration 0005): the connector or the
@@ -46,6 +47,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   slack_invalid_state: 'That Slack sign-in expired or came from another session. Try again.',
   slack_connect_failed: "Couldn't finish connecting Slack. Try again.",
   slack_not_configured: "Slack connection isn't set up on this deployment yet.",
+  calendly_denied: 'Calendly connection was cancelled.',
+  calendly_invalid_state: 'That Calendly sign-in expired or came from another session. Try again.',
+  calendly_connect_failed: "Couldn't finish connecting Calendly. Try again.",
+  calendly_not_configured: "Calendly connection isn't set up on this deployment yet.",
 };
 
 const linkButton =
@@ -83,7 +88,7 @@ async function ConnectionsList({ searchParams }: { searchParams: SearchParams })
   const { data } = await supabase
     .from('connected_accounts')
     .select(
-      'id, provider, account_type, owner_user_id, scopes, external_account_id, provider_team_name, provider_team_domain, visibility, status',
+      'id, provider, account_type, owner_user_id, scopes, external_account_id, provider_team_name, provider_team_domain, scheduling_url, visibility, status',
     )
     .eq('workspace_id', workspaceId)
     .in('status', ['connected', 'needs_reauth'])
@@ -350,6 +355,7 @@ function AccountItem({
   showIdentifier?: boolean;
   sendAndBook?: ReactNode;
 }) {
+  const identifier = showIdentifier ? connectionIdentifier(account) : null;
   return (
     <li className="flex flex-wrap items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
       <div className="flex min-w-0 flex-col">
@@ -359,9 +365,7 @@ function AccountItem({
             <Badge variant="danger-soft">Needs reconnect</Badge>
           )}
         </span>
-        {showIdentifier && account.external_account_id && (
-          <span className="text-sm break-all text-ink-muted">{account.external_account_id}</span>
-        )}
+        {identifier && <span className="text-sm break-all text-ink-muted">{identifier}</span>}
       </div>
       <div className="flex items-center gap-3">
         {sendAndBook}
