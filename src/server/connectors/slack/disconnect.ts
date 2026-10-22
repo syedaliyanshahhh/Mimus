@@ -1,12 +1,12 @@
 import { createServiceClient } from '@/src/db/service';
+import { deleteConnectedAccount } from '@/src/server/connectors/deleteConnectedAccount';
 import { deleteSlackInstallationIfUnused } from '@/src/server/connectors/slack/installations';
 import { revokeToken } from '@/src/server/connectors/slack/oauth';
 import { decryptToken, pgByteaToBuffer } from '@/src/server/crypto/tokenVault';
 
 // No sibling-row fan-out needed (see connect.ts) -- disconnecting always
-// revokes exactly this one token and purges exactly this one
-// connected_account's content. Slack never produces calendar events, so
-// unlike Google/Microsoft's disconnect there's no events row to purge.
+// revokes exactly this one user token and deletes exactly this one
+// connected_account (its messages and people go with it by cascade).
 export async function disconnectSlackAccount(connectedAccountId: string): Promise<void> {
   const supabase = createServiceClient();
 
@@ -31,25 +31,7 @@ export async function disconnectSlackAccount(connectedAccountId: string): Promis
     await revokeToken(accessToken);
   }
 
-  await supabase
-    .from('connected_accounts')
-    .update({ status: 'disconnected', disconnected_at: new Date().toISOString() })
-    .eq('id', connectedAccountId)
-    .throwOnError();
-
-  await Promise.all([
-    supabase
-      .from('messages')
-      .delete()
-      .eq('connected_account_id', connectedAccountId)
-      .throwOnError(),
-    supabase.from('people').delete().eq('connected_account_id', connectedAccountId).throwOnError(),
-    supabase
-      .from('connected_account_secrets')
-      .delete()
-      .eq('connected_account_id', connectedAccountId)
-      .throwOnError(),
-  ]);
+  await deleteConnectedAccount(connectedAccountId);
 
   // The Slack workspace's bot token is shared by every member who
   // connected it, so it goes only when this was the last one.

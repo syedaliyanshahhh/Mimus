@@ -65,6 +65,15 @@ export async function registerCalendlyWebhook(connectedAccountId: string): Promi
   if (!response.ok) {
     throw new Error(`Calendly webhook subscription creation failed: ${response.status}`);
   }
+
+  // Stored so disconnect can delete this exact subscription -- Calendly's
+  // never expire on their own.
+  const { resource } = (await response.json()) as { resource: { uri: string } };
+  await supabase
+    .from('connected_accounts')
+    .update({ watch_channel_id: resource.uri })
+    .eq('id', connectedAccountId)
+    .throwOnError();
 }
 
 interface CalendlyWebhookBody {

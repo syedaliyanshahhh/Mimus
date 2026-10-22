@@ -1,6 +1,8 @@
 import { isWorkspaceReadOnly } from '@/src/server/billing/killSwitch';
+import { hasAcceptedCurrentTerms } from '@/src/server/legal/termsAcceptance';
 import { getCurrentWorkspaceContext } from '@/src/server/workspaces/getCurrentWorkspaceContext';
 import { getInitials } from '@/src/lib/get-display-name';
+import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { ReadOnlyBanner } from './read-only-banner';
@@ -18,12 +20,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Suspense fallback={null}>
+          <TermsGate />
+        </Suspense>
+        <Suspense fallback={null}>
           <ReadOnlyBannerServer />
         </Suspense>
         {children}
       </main>
     </div>
   );
+}
+
+// Sends a signed-in user who hasn't accepted the current Terms version to
+// the clickwrap -- covers sessions that predate it or a version bump. New
+// sign-ins are caught earlier, in the auth callback.
+async function TermsGate() {
+  await connection();
+  const context = await getCurrentWorkspaceContext();
+  if (context && !(await hasAcceptedCurrentTerms(context.supabase, context.userId))) {
+    redirect('/accept-terms');
+  }
+  return null;
 }
 
 async function TopNavServer() {

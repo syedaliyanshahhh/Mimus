@@ -144,10 +144,10 @@ describe('provisionAfterSignIn', () => {
   // auto-created owner workspace *and* the invited membership.
   it('leaves an invitee with exactly one membership, in the invited workspace', async () => {
     const user = await newUser();
-    const token = await insertInvite({ role: 'manager' });
+    const token = await insertInvite({ role: 'manager', email: user.email });
 
     await provisionAfterSignIn({ ...user, next: `/invite/${token}` });
-    await acceptInvite({ token, userId: user.userId });
+    await acceptInvite({ token, userId: user.userId, email: user.email });
 
     expect(await memberships(user.userId)).toEqual([
       { workspace_id: inviteWorkspaceId, role: 'manager' },

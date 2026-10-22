@@ -76,7 +76,7 @@ describe('disconnectSlackAccount', () => {
     return { workspaceId: workspace!.id as string, connectedAccountId: account!.id as string };
   }
 
-  it('revokes the token, purges messages/people, deletes the secret, and marks disconnected', async () => {
+  it('revokes the token, purges messages/people, deletes the secret, and deletes the account row', async () => {
     const { workspaceId, connectedAccountId } = await makeConnectedAccount();
     await upsertMessage(workspaceId, connectedAccountId, {
       providerMessageId: 'msg-1',
@@ -94,12 +94,11 @@ describe('disconnectSlackAccount', () => {
 
     const { data: account } = await supabase
       .from('connected_accounts')
-      .select('status, disconnected_at')
+      .select('id')
       .eq('id', connectedAccountId)
-      .single()
+      .maybeSingle()
       .throwOnError();
-    expect(account!.status).toBe('disconnected');
-    expect(account!.disconnected_at).not.toBeNull();
+    expect(account).toBeNull();
 
     const { data: messages } = await supabase
       .from('messages')

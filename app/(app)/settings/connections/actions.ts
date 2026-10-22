@@ -19,18 +19,34 @@ export async function updateConnectionVisibility(
   visibility: 'private' | 'team' | 'company',
 ) {
   const { supabase, workspaceId } = await requireContext();
-  await assertWorkspaceWritable(workspaceId);
-  const { error } = await supabase
+  // Narrowing back to Private is a privacy control the policy promises
+  // always works, so only widening is blocked while billing is lapsed.
+  if (visibility !== 'private') {
+    await assertWorkspaceWritable(workspaceId);
+  }
+  const { data, error } = await supabase
     .from('connected_accounts')
     .update({ visibility })
-    .eq('id', connectedAccountId);
-  if (error) throw error;
+    .eq('id', connectedAccountId)
+    .select('id');
+  if (error) {
+    throw new Error(
+      error.code === '42501'
+        ? 'Only Owners and Managers can share an account beyond Private.'
+        : error.message,
+    );
+  }
+  if (!data?.length) {
+    throw new Error('You can’t change this account’s visibility.');
+  }
   revalidatePath('/settings/connections');
 }
 
+// No assertWorkspaceWritable: disconnecting is how a user withdraws
+// Mimus's access, which the Privacy Policy promises works even while
+// billing is past due or canceled.
 export async function disconnectAccount(connectedAccountId: string) {
-  const { supabase, workspaceId } = await requireContext();
-  await assertWorkspaceWritable(workspaceId);
+  const { supabase } = await requireContext();
 
   // This update, through the signed-in user's own RLS-scoped client, is
   // the authorization check -- it only succeeds under

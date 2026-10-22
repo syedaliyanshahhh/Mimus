@@ -121,7 +121,11 @@ export async function seedConnectedAccount(
   return account!.id as string;
 }
 
-export async function signInViaMagicLink(page: Page, email: string): Promise<void> {
+export async function signInViaMagicLink(
+  page: Page,
+  email: string,
+  { acceptTerms = true }: { acceptTerms?: boolean } = {},
+): Promise<void> {
   await clearMailbox();
 
   await page.goto('/sign-in');
@@ -135,6 +139,19 @@ export async function signInViaMagicLink(page: Page, email: string): Promise<voi
   // after load, so goto() can resolve before it happens. Wait for the final
   // page, or the caller's next navigation gets interrupted by that redirect.
   await page.waitForURL((url) => url.pathname !== '/' && !url.pathname.startsWith('/auth/'));
+
+  // First sign-in stops at the clickwrap (tests/e2e/terms.spec.ts covers it
+  // on its own); most specs just need to get past it.
+  if (acceptTerms && new URL(page.url()).pathname === '/accept-terms') {
+    await acceptTermsOnPage(page);
+  }
+}
+
+export async function acceptTermsOnPage(page: Page): Promise<void> {
+  await page.getByLabel(/i agree to the terms of service/i).check();
+  await page.getByLabel(/i am 18 or older/i).check();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.waitForURL((url) => url.pathname !== '/' && url.pathname !== '/accept-terms');
 }
 
 // An incoming email in one of the user's own connected accounts, for
@@ -160,4 +177,42 @@ export async function seedInboundMessage(
     sentAt: new Date().toISOString(),
     from: { email: fromEmail, displayName: fromName },
   });
+}
+
+// Adds a teammate straight into the signed-in owner's workspace (an auth
+// user, their profile and an active membership), skipping the invite round
+// trip for specs that only need someone to already be on the team.
+export async function addWorkspaceMember(
+  ownerEmail: string,
+  { email, role }: { email: string; role: 'manager' | 'member' },
+): Promise<{ userId: string; membershipId: string }> {
+  const supabase = createServiceClient();
+  const { data: owner, error: ownerError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', ownerEmail)
+    .single();
+  if (ownerError) throw ownerError;
+  const { data: ownerMembership, error: membershipError } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', owner.id)
+    .single();
+  if (membershipError) throw membershipError;
+
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+  });
+  if (createError) throw createError;
+  const userId = created.user.id;
+
+  await supabase.from('profiles').insert({ id: userId, email }).throwOnError();
+  const { data: membership } = await supabase
+    .from('workspace_members')
+    .insert({ workspace_id: ownerMembership.workspace_id, user_id: userId, role })
+    .select('id')
+    .single()
+    .throwOnError();
+  return { userId, membershipId: membership!.id as string };
 }

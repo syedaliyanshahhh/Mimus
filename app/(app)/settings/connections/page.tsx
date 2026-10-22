@@ -25,6 +25,11 @@ interface AccountRow {
   provider_team_domain: string | null;
   visibility: 'private' | 'team' | 'company';
   status: 'connected' | 'needs_reauth';
+  // Mirror update_connected_accounts (migration 0005): the connector or the
+  // workspace Owner may change or disconnect an account, and only Owners
+  // and Managers may widen it above Private. RLS still enforces both.
+  canEdit: boolean;
+  canWiden: boolean;
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -71,7 +76,7 @@ async function ConnectionsList({ searchParams }: { searchParams: SearchParams })
     );
   }
 
-  const { supabase, workspaceId, userId } = context;
+  const { supabase, workspaceId, userId, role } = context;
   const { error: errorParam } = await searchParams;
   const errorCode = typeof errorParam === 'string' ? errorParam : null;
 
@@ -83,7 +88,12 @@ async function ConnectionsList({ searchParams }: { searchParams: SearchParams })
     .eq('workspace_id', workspaceId)
     .in('status', ['connected', 'needs_reauth'])
     .order('created_at');
-  const accounts = (data ?? []) as AccountRow[];
+  const accounts: AccountRow[] = ((data ?? []) as Omit<AccountRow, 'canEdit' | 'canWiden'>[]).map(
+    (account) => {
+      const canEdit = account.owner_user_id === userId || role === 'owner';
+      return { ...account, canEdit, canWiden: canEdit && role !== 'member' };
+    },
+  );
 
   const byProvider = (provider: Provider) =>
     accounts.filter((account) => account.provider === provider);
@@ -355,8 +365,18 @@ function AccountItem({
       </div>
       <div className="flex items-center gap-3">
         {sendAndBook}
-        <VisibilitySelect accountId={account.id} visibility={account.visibility} />
-        <DisconnectButton accountId={account.id} />
+        {account.canEdit ? (
+          <>
+            <VisibilitySelect
+              accountId={account.id}
+              visibility={account.visibility}
+              canWiden={account.canWiden}
+            />
+            <DisconnectButton accountId={account.id} />
+          </>
+        ) : (
+          <Badge variant="accent-soft">{account.visibility}</Badge>
+        )}
       </div>
     </li>
   );

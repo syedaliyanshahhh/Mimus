@@ -7,8 +7,8 @@
 - **Workspace(s):** [workspace name(s)]
 - **Schedule date:** [date]
 - **Approved for the client by:** [name, title, email]
-- **Workspace Owners (can widen visibility):** [names]
-- **Client confirms it has told its members** that Owners can widen the visibility of their connected accounts: [yes / no, date]
+- **Workspace Owners (can change the visibility of accounts members have shared):** [names]
+- **Client confirms it has told its members** who can see shared (Team or Company) accounts: [yes / no, date]
 
 ## Gmail (Google)
 
@@ -68,4 +68,4 @@ Not yet supported. Any additional connector (for example QuickBooks or Google Dr
 ## AI processing
 
 - **Provider:** OpenAI (the only provider in the Service today).
-- **Sent per question:** the question and short excerpts (up to 1,500 characters per email and 500 per event description), with storage turned off.
+- **Sent per question:** the question and short excerpts (up to 1,500 characters per email, 500 per event description and 1,000 per Slack message; plus free time slots and the drafted reply when proposing meeting times), with storage turned off.

@@ -8,6 +8,7 @@ import {
   verifyClientState,
 } from '@/src/server/connectors/microsoft/webhook';
 import { bufferToPgBytea, encryptToken } from '@/src/server/crypto/tokenVault';
+import { upsertMessage } from '@/src/server/shared/normalize';
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Client } from '@microsoft/microsoft-graph-client';
@@ -199,6 +200,46 @@ describe('microsoft webhook', () => {
         .single()
         .throwOnError();
       expect(account!.sync_cursor).toContain('deltatoken=abc');
+    });
+
+    it('deletes mail the user deleted in Outlook', async () => {
+      const { connectedAccountId, workspaceId } = await makeConnectedAccount('email');
+      const subscriptionId = `sub-${randomUUID()}`;
+      await supabase
+        .from('connected_accounts')
+        .update({ watch_channel_id: subscriptionId })
+        .eq('id', connectedAccountId)
+        .throwOnError();
+      await upsertMessage(workspaceId, connectedAccountId, {
+        providerMessageId: 'msg-deleted-in-outlook',
+        direction: 'inbound',
+      });
+
+      vi.mocked(getAuthorizedGraphClient).mockResolvedValue(
+        fakeGraphClient({
+          "/me/mailFolders('inbox')/messages/delta": {
+            value: [{ id: 'msg-deleted-in-outlook', '@removed': { reason: 'deleted' } }],
+            deltaLink:
+              "https://graph.microsoft.com/v1.0/me/mailFolders('inbox')/messages/delta?$deltatoken=def",
+          },
+        }),
+      );
+
+      await handleGraphNotifications([
+        {
+          subscriptionId,
+          clientState: 'test-client-state-secret',
+          resource: '/me/messages',
+          changeType: 'deleted',
+        },
+      ]);
+
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('connected_account_id', connectedAccountId)
+        .throwOnError();
+      expect(messages).toHaveLength(0);
     });
 
     it('rejects a notification with a mismatched clientState before touching the DB', async () => {

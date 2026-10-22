@@ -105,14 +105,14 @@ describe('disconnectGoogleAccount', () => {
 
     expect(revokeSpy).toHaveBeenCalledWith('access-123');
 
+    // The row itself goes too, so no account email or scopes linger.
     const { data: account } = await supabase
       .from('connected_accounts')
-      .select('status, disconnected_at')
+      .select('id')
       .eq('id', connectedAccountId)
-      .single()
+      .maybeSingle()
       .throwOnError();
-    expect(account!.status).toBe('disconnected');
-    expect(account!.disconnected_at).not.toBeNull();
+    expect(account).toBeNull();
 
     const { data: events } = await supabase
       .from('events')
@@ -188,6 +188,66 @@ describe('disconnectGoogleAccount', () => {
       .maybeSingle()
       .throwOnError();
     expect(calendarSecret).toBeNull();
+  });
+
+  it('stops the Gmail watch before revoking, so Pub/Sub stops pushing for the account', async () => {
+    const { workspaceId, userId } = await makeWorkspace();
+    const emailAccountId = await makeConnectedAccount(
+      workspaceId,
+      userId,
+      'email',
+      `watch-${randomUUID()}@example.com`,
+    );
+    await supabase
+      .from('connected_accounts')
+      .update({ watch_expires_at: new Date(Date.now() + 86_400_000).toISOString() })
+      .eq('id', emailAccountId)
+      .throwOnError();
+
+    const usersPrototype = Object.getPrototypeOf(
+      google.gmail({ version: 'v1', auth: new google.auth.OAuth2() }).users,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const stopSpy = vi.spyOn(usersPrototype, 'stop').mockResolvedValue({} as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.spyOn(google.auth.OAuth2.prototype, 'revokeToken').mockResolvedValue({} as any);
+
+    await disconnectGoogleAccount(emailAccountId);
+
+    expect(stopSpy).toHaveBeenCalledWith({ userId: 'me' });
+  });
+
+  it('still disconnects when stopping the Gmail watch fails', async () => {
+    const { workspaceId, userId } = await makeWorkspace();
+    const emailAccountId = await makeConnectedAccount(
+      workspaceId,
+      userId,
+      'email',
+      `watch-${randomUUID()}@example.com`,
+    );
+    await supabase
+      .from('connected_accounts')
+      .update({ watch_expires_at: new Date(Date.now() + 86_400_000).toISOString() })
+      .eq('id', emailAccountId)
+      .throwOnError();
+
+    const usersPrototype = Object.getPrototypeOf(
+      google.gmail({ version: 'v1', auth: new google.auth.OAuth2() }).users,
+    );
+    vi.spyOn(usersPrototype, 'stop').mockRejectedValue(new Error('invalid_grant'));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.spyOn(google.auth.OAuth2.prototype, 'revokeToken').mockResolvedValue({} as any);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await disconnectGoogleAccount(emailAccountId);
+
+    const { data: account } = await supabase
+      .from('connected_accounts')
+      .select('id')
+      .eq('id', emailAccountId)
+      .maybeSingle()
+      .throwOnError();
+    expect(account).toBeNull();
   });
 
   it('revokes the grant even when another user still has the same Google address connected', async () => {

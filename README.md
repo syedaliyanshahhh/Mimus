@@ -16,7 +16,7 @@ The repo moved here from `iwhozaifa/mimus` on 2026-10-14 with its full commit an
 - **AI:** OpenAI Responses API (`openai`) behind a swappable `AiProvider` interface — GPT-6 Luna / GPT-6.1 Sol / GPT-5.6 Sol tiers
 - **Testing:** Vitest (unit/integration), pgTAP (RLS/SQL), Playwright (e2e)
 - **Tooling:** ESLint, Prettier, Husky + lint-staged + commitlint
-- **CI/Hosting:** GitHub Actions (required on every PR) · Supabase Cloud · Vercel (not yet connected)
+- **CI/Hosting:** GitHub Actions (required on every PR) · Supabase Cloud · Vercel (deployed from the CLI)
 
 ## Prerequisites
 
@@ -42,36 +42,36 @@ cp .env.example .env.local
 
 Copy `.env.example` to `.env.local` and fill these in — all are server-only except the two `NEXT_PUBLIC_*` ones:
 
-| Variable                               | Required for                                      | Where to get it                                                                                                                            |
-| -------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Everything                                        | `npx supabase status` (local) or your Supabase project's API settings (hosted)                                                             |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Everything                                        | Same as above                                                                                                                              |
-| `SUPABASE_SECRET_KEY`                  | Server-side admin writes (service role)           | Same as above — never expose this one to the browser                                                                                       |
-| `RESEND_API_KEY`                       | Teammate-invite emails only (**not** sign-in)     | [resend.com](https://resend.com) — a free account works; sandbox mode only delivers to your own account email until you verify a domain    |
-| `RESEND_FROM_EMAIL`                    | Optional, pairs with `RESEND_API_KEY`             | A verified sender on your Resend domain; omit to use Resend's sandbox sender                                                               |
-| `STRIPE_SECRET_KEY`                    | `/billing` checkout                               | [dashboard.stripe.com](https://dashboard.stripe.com) test-mode API keys                                                                    |
-| `STRIPE_WEBHOOK_SECRET`                | Stripe webhook verification                       | Stripe CLI (`stripe listen`) locally, or the webhook's signing secret in the Stripe dashboard once deployed                                |
-| `GOOGLE_OAUTH_CLIENT_ID`               | Connecting a Google account (Gmail+Calendar)      | [console.cloud.google.com](https://console.cloud.google.com) -> APIs & Services -> Credentials -> OAuth client ID (type "Web application") |
-| `GOOGLE_OAUTH_CLIENT_SECRET`           | Same as above                                     | Same as above                                                                                                                              |
-| `GOOGLE_OAUTH_REDIRECT_URI`            | Same as above                                     | Must exactly match an authorized redirect URI on the OAuth client, e.g. `http://127.0.0.1:3000/api/connectors/google/callback`             |
-| `MICROSOFT_OAUTH_CLIENT_ID`            | Connecting a Microsoft account (Outlook+Calendar) | [entra.microsoft.com](https://entra.microsoft.com) -> App registrations -> New registration (multi-tenant)                                 |
-| `MICROSOFT_OAUTH_CLIENT_SECRET`        | Same as above                                     | Same as above, under "Certificates & secrets"                                                                                              |
-| `MICROSOFT_OAUTH_REDIRECT_URI`         | Same as above                                     | Must exactly match a redirect URI registered on the app, e.g. `http://127.0.0.1:3000/api/connectors/microsoft/callback`                    |
-| `MICROSOFT_OAUTH_AUTHORITY`            | Optional, defaults to the `common` authority      | Only needed if your app registration restricts sign-in to a single tenant or organizations-only                                            |
-| `SLACK_CLIENT_ID`                      | Connecting a Slack account (channels + mentions)  | [api.slack.com/apps](https://api.slack.com/apps) -> Create New App -> OAuth & Permissions                                                  |
-| `SLACK_CLIENT_SECRET`                  | Same as above                                     | Same as above, under "Basic Information" -> App Credentials                                                                                |
-| `SLACK_OAUTH_REDIRECT_URI`             | Same as above                                     | Must exactly match a redirect URL registered under "OAuth & Permissions", e.g. `http://127.0.0.1:3000/api/connectors/slack/callback`       |
-| `CALENDLY_CLIENT_ID`                   | Connecting a Calendly account (scheduled events)  | [calendly.com](https://calendly.com) -> Integrations -> API & Webhooks -> OAuth                                                            |
-| `CALENDLY_CLIENT_SECRET`               | Same as above                                     | Same as above                                                                                                                              |
-| `CALENDLY_OAUTH_REDIRECT_URI`          | Same as above                                     | Must exactly match the app's registered redirect URI, e.g. `http://127.0.0.1:3000/api/connectors/calendly/callback`                        |
-| `TOKEN_ENCRYPTION_KEY`                 | Encrypting connector OAuth tokens at rest         | Generate your own: `openssl rand -base64 32` -- not a third-party credential                                                               |
-| `TOKEN_ENCRYPTION_KEY_VERSION`         | Optional, defaults to `1`                         | Only set when rotating to a new `TOKEN_ENCRYPTION_KEY_V{n}` (see below)                                                                    |
-| `GMAIL_BACKFILL_UNITS_PER_MINUTE`      | Optional, defaults to `3000`                      | Gmail quota units per minute the backfill may spend (see "Google connector")                                                               |
-| `OPENAI_API_KEY`                       | Ask Mimus (the AI)                                | [platform.openai.com](https://platform.openai.com) -> API keys                                                                             |
+| Variable                               | Required for                                        | Where to get it                                                                                                                            |
+| -------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Everything                                          | `npx supabase status` (local) or your Supabase project's API settings (hosted)                                                             |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Everything                                          | Same as above                                                                                                                              |
+| `SUPABASE_SECRET_KEY`                  | Server-side admin writes (service role)             | Same as above — never expose this one to the browser                                                                                       |
+| `RESEND_API_KEY`                       | Teammate-invite emails only (**not** sign-in)       | [resend.com](https://resend.com) — a free account works; sandbox mode only delivers to your own account email until you verify a domain    |
+| `RESEND_FROM_EMAIL`                    | Required in production, pairs with `RESEND_API_KEY` | A verified sender on your Resend domain; omit locally to use Resend's sandbox sender                                                       |
+| `STRIPE_SECRET_KEY`                    | `/billing` checkout                                 | [dashboard.stripe.com](https://dashboard.stripe.com) test-mode API keys                                                                    |
+| `STRIPE_WEBHOOK_SECRET`                | Stripe webhook verification                         | Stripe CLI (`stripe listen`) locally, or the webhook's signing secret in the Stripe dashboard once deployed                                |
+| `GOOGLE_OAUTH_CLIENT_ID`               | Connecting a Google account (Gmail+Calendar)        | [console.cloud.google.com](https://console.cloud.google.com) -> APIs & Services -> Credentials -> OAuth client ID (type "Web application") |
+| `GOOGLE_OAUTH_CLIENT_SECRET`           | Same as above                                       | Same as above                                                                                                                              |
+| `GOOGLE_OAUTH_REDIRECT_URI`            | Same as above                                       | Must exactly match an authorized redirect URI on the OAuth client, e.g. `http://127.0.0.1:3000/api/connectors/google/callback`             |
+| `MICROSOFT_OAUTH_CLIENT_ID`            | Connecting a Microsoft account (Outlook+Calendar)   | [entra.microsoft.com](https://entra.microsoft.com) -> App registrations -> New registration (multi-tenant)                                 |
+| `MICROSOFT_OAUTH_CLIENT_SECRET`        | Same as above                                       | Same as above, under "Certificates & secrets"                                                                                              |
+| `MICROSOFT_OAUTH_REDIRECT_URI`         | Same as above                                       | Must exactly match a redirect URI registered on the app, e.g. `http://127.0.0.1:3000/api/connectors/microsoft/callback`                    |
+| `MICROSOFT_OAUTH_AUTHORITY`            | Optional, defaults to the `common` authority        | Only needed if your app registration restricts sign-in to a single tenant or organizations-only                                            |
+| `SLACK_CLIENT_ID`                      | Connecting a Slack account (channels + mentions)    | [api.slack.com/apps](https://api.slack.com/apps) -> Create New App -> OAuth & Permissions                                                  |
+| `SLACK_CLIENT_SECRET`                  | Same as above                                       | Same as above, under "Basic Information" -> App Credentials                                                                                |
+| `SLACK_OAUTH_REDIRECT_URI`             | Same as above                                       | Must exactly match a redirect URL registered under "OAuth & Permissions", e.g. `http://127.0.0.1:3000/api/connectors/slack/callback`       |
+| `CALENDLY_CLIENT_ID`                   | Connecting a Calendly account (scheduled events)    | [calendly.com](https://calendly.com) -> Integrations -> API & Webhooks -> OAuth                                                            |
+| `CALENDLY_CLIENT_SECRET`               | Same as above                                       | Same as above                                                                                                                              |
+| `CALENDLY_OAUTH_REDIRECT_URI`          | Same as above                                       | Must exactly match the app's registered redirect URI, e.g. `http://127.0.0.1:3000/api/connectors/calendly/callback`                        |
+| `TOKEN_ENCRYPTION_KEY`                 | Encrypting connector OAuth tokens at rest           | Generate your own: `openssl rand -base64 32` -- not a third-party credential                                                               |
+| `TOKEN_ENCRYPTION_KEY_VERSION`         | Optional, defaults to `1`                           | Only set when rotating to a new `TOKEN_ENCRYPTION_KEY_V{n}` (see below)                                                                    |
+| `GMAIL_BACKFILL_UNITS_PER_MINUTE`      | Optional, defaults to `3000`                        | Gmail quota units per minute the backfill may spend (see "Google connector")                                                               |
+| `OPENAI_API_KEY`                       | Ask Mimus (the AI)                                  | [platform.openai.com](https://platform.openai.com) -> API keys                                                                             |
 
 **Use `http://127.0.0.1:3000`, not `localhost`, for local development** — both in the browser and in every OAuth redirect URI you register. Cookies are bound to the exact host, so starting a connect flow on `localhost` and returning to `127.0.0.1` (or the reverse) loses the session and fails with `?error=google_invalid_state`. **`TOKEN_ENCRYPTION_KEY` is required before connecting any provider**; without it the callback fails with `?error=google_connect_failed` (or the equivalent for that provider).
 
-If you leave `RESEND_API_KEY` blank, invites still work — the invite link is logged to the server console instead of emailed. If you leave the Stripe vars blank, `/billing` renders fine but the Subscribe button errors when clicked; you also need at least one `plans` row with a real `stripe_price_id` (`supabase/migrations/0007_plans_feature_switches.sql`) for a plan to be checkout-able at all — the table ships empty. If you leave the Google, Microsoft, or Slack OAuth vars blank, that provider's "Connect" flow redirects back with an error instead of throwing at import/build time -- everything else works without it.
+If you leave `RESEND_API_KEY` blank, invites still work locally — the invite link is logged to the server console instead of emailed. In production (`VERCEL_ENV=production`) a missing `RESEND_API_KEY` or `RESEND_FROM_EMAIL` makes the invite fail with an explicit error instead. If you leave the Stripe vars blank, `/billing` renders fine but the Subscribe button errors when clicked; you also need at least one `plans` row with a real `stripe_price_id` (`supabase/migrations/0007_plans_feature_switches.sql`) for a plan to be checkout-able at all — the table ships empty. If you leave the Google, Microsoft, or Slack OAuth vars blank, that provider's "Connect" flow redirects back with an error instead of throwing at import/build time -- everything else works without it.
 
 ### Google connector
 
@@ -175,6 +175,25 @@ If a sign-in email doesn't show up in Mailpit:
 
 For a real deployment, Supabase Cloud's default mailer is also rate-limited and meant for testing only — configure a custom SMTP provider under your Supabase project's Auth settings (`supabase/config.toml`'s commented-out `[auth.email.smtp]` block shows the shape) to have magic links actually land in users' real inboxes in production.
 
+## Environments
+
+| Environment                  | Supabase                                   | Used by                                                      |
+| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------ |
+| Local (default)              | `npx supabase start` on your machine       | Day-to-day development and every test suite                  |
+| Dev (`mimus-dev`)            | Supabase Cloud, ref `rgxkhtcepnutvmkvvosm` | Vercel **Preview** and **Development** environment variables |
+| Production (`mimus-staging`) | Supabase Cloud, ref `kgaktvkwfdmrruejdodq` | Vercel **Production** only                                   |
+
+The local stack stays the default for development. `mimus-dev` holds only the synthetic data from `supabase/seed.sql` and has its own `TOKEN_ENCRYPTION_KEY`, so preview deployments never touch real customer data. To run your local app against it instead of the local stack, `npx vercel env pull .env.local --environment=development` (back up your `.env.local` first).
+
+Applying migrations to `mimus-dev`:
+
+```bash
+npx supabase link --project-ref rgxkhtcepnutvmkvvosm
+npx supabase db push --linked            # add --include-seed only on a fresh dev project
+```
+
+**Never leave a developer machine linked to `mimus-staging`** (production). Link to it only for the deploy step below, and never run `db reset` or `--include-seed` against it. Dev Auth allows `http://127.0.0.1:3000/auth/callback` and `https://*-tech-2500.vercel.app/**` as redirect URLs.
+
 ## Deploying to Vercel
 
 The app deploys to Vercel as a standard Next.js project against the `mimus-staging` Supabase project. Nothing in the code is tied to a host: every URL comes from env vars or the incoming request.
@@ -190,7 +209,7 @@ The app deploys to Vercel as a standard Next.js project against the `mimus-stagi
 
 **Steps (repo owner):**
 
-1. **Database.** Apply any new migrations to `mimus-staging`: `npx supabase db push --linked`. Never run `db reset` against it.
+1. **Database.** Apply any new migrations to `mimus-staging`: `npx supabase link --project-ref kgaktvkwfdmrruejdodq`, then `npx supabase db push --linked --dry-run` and `npx supabase db push --linked`. Never run `db reset` or `--include-seed` against it. Relink to `mimus-dev` afterwards.
 2. **Vercel project.** [vercel.com/new](https://vercel.com/new) → import `syedaliyanshahhh/Mimus`. Framework preset: Next.js (detected). Leave Fluid Compute on.
 3. **Environment variables** (Production), set _before_ the first build, because `NEXT_PUBLIC_*` values are baked in at build time:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`: from the `mimus-staging` project's API settings.
@@ -233,9 +252,9 @@ Sign in to reach the app shell at these routes:
 | `/settings/connections`          | Connect one or more Google accounts (Gmail & Calendar) and Slack workspaces, plus Microsoft or Calendly; set each row's visibility; allow sending and booking |
 | `/approvals`                     | Scheduling replies Mimus drafted: send the times, book a slot, send the Calendly link, or dismiss                                                             |
 | `/settings/scheduling`           | Approval level (1–4) and scheduling rules: working hours, time zone, meeting length, buffer, notice, booking calendar                                         |
-| `/billing`                       | Plans and current subscription, Stripe Checkout button                                                                                                        |
+| `/billing`                       | Plans and current subscription, Stripe Checkout button, and (Owners) Manage or cancel subscription via the Stripe Billing Portal                              |
 | `/feature-switches`              | Owner-only toggles for product areas (money/pipeline/projects/canopy/scheduling)                                                                              |
-| `/audit-log`                     | Placeholder — becomes the AI agent activity log once the agent ships (Milestone 4+)                                                                           |
+| `/audit-log`                     | Owner-only AI usage log: the latest 200 Ask Mimus requests with who asked, model, tokens, cost and status                                                     |
 
 `/billing`'s checkout button calls real Stripe Checkout code but has no test-mode keys configured yet (`STRIPE_SECRET_KEY` is blank in `.env.example`) — it will error until those are added.
 

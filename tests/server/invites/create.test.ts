@@ -77,6 +77,20 @@ describe('createInvite', () => {
     );
   });
 
+  it('forbids inviting a new Owner, even by an Owner, and sends no email', async () => {
+    await expect(
+      createInvite({
+        workspaceId,
+        workspaceName: 'Invite test ws',
+        invitedByUserId: ownerId,
+        email: 'would-be-owner@example.com',
+        role: 'owner',
+        baseUrl: 'http://127.0.0.1:3000',
+      }),
+    ).rejects.toThrow(/not allowed/i);
+    expect(sendInviteEmail).not.toHaveBeenCalled();
+  });
+
   it('lets a manager invite a member', async () => {
     const invite = await createInvite({
       workspaceId,

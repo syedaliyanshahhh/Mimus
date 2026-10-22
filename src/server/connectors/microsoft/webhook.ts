@@ -99,7 +99,25 @@ async function syncGraphDelta(
   let deltaLink = page['@odata.deltaLink'];
   while (true) {
     for (const item of page.value ?? []) {
-      if (item['@removed']) continue;
+      // Deleted (or moved out of the inbox) in Outlook: delete our copy too.
+      if (item['@removed']) {
+        if (item.id) {
+          await (
+            accountType === 'email'
+              ? supabase
+                  .from('messages')
+                  .delete()
+                  .eq('connected_account_id', connectedAccountId)
+                  .eq('provider_message_id', item.id)
+              : supabase
+                  .from('events')
+                  .delete()
+                  .eq('connected_account_id', connectedAccountId)
+                  .eq('provider_event_id', item.id)
+          ).throwOnError();
+        }
+        continue;
+      }
       if (accountType === 'email') {
         if (!selfEmail) {
           throw new Error(`Connected account ${connectedAccountId} has no external_account_id`);

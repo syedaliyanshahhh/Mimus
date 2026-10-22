@@ -8,7 +8,7 @@ These Terms govern your use of Mimus, the web app at https://getmimus.io (the "S
 
 ## 1. Acceptance
 
-By creating an account or using the Service, you agree to these Terms and to our [Privacy Policy](/privacy).
+When you first sign in, we ask you to accept these Terms and our [Privacy Policy](/privacy) by ticking a box, and we record which version you accepted and when. By accepting, or by using the Service, you agree to them.
 
 If you use Mimus on behalf of a company or other organization, you confirm that you have authority to bind it to these Terms. In that case "you" includes that organization.
 
@@ -16,14 +16,15 @@ If you don't agree, don't use the Service.
 
 ## 2. Eligibility
 
-You must be at least [TODO: minimum age, recommended 18] years old and able to form a binding contract. Mimus is a business tool and is not intended for children.
+You must be at least 18 years old and able to form a binding contract, and you confirm this when you first sign in. Mimus is a business tool and is not intended for children.
 
 ## 3. Accounts and workspaces
 
 - You sign in with a one-time link sent to your email. Keep access to that email account secure, because anyone who controls it can sign in as you.
 - An organization's Mimus workspace has Owners, Managers and Members:
-  - **Owners** control the workspace: its members, roles, billing, feature settings and the visibility of connected accounts.
+  - **Owners** control the workspace: its members, roles, who reports to whom, billing and feature settings. They can also change the visibility of connected accounts already shared with them (section 4).
   - **Managers** can invite and remove Members.
+- If an Owner removes you from a workspace, the services you connected there are disconnected and their imported data deleted. You keep your Mimus account.
 - You're responsible for activity under your account, and Owners are responsible for who they invite.
 - Give us accurate information, and tell us promptly at tech@youraiteammates.com if you suspect unauthorized access.
 
@@ -34,9 +35,9 @@ Mimus works by reading data from services you choose to connect: Google (Gmail a
 - You authorize Mimus to access each service with the read-only permissions shown when you connect it. Our [Privacy Policy](/privacy) says exactly what we do with that data.
 - **Sending and booking are optional.** If you click "Allow sending and booking" for a Google or Microsoft account, you also authorize Mimus to send scheduling replies from that account and to create meetings on its calendar, within the approval level you choose (section 7).
 - Connect only accounts you're entitled to use. Make sure that connecting them, and any visibility you give your workspace, is allowed by your employer's policies and by those services' own terms.
-- **Workspace Owners can widen visibility.** An Owner (for example, your organization's CEO) can change a member's connected account from Private to Team or Company, which lets others in the workspace see its data. If your organization does this, it is responsible for telling the affected members first and for having a lawful basis to do so.
+- **Who controls visibility.** Every connected account starts Private, visible only to you, and only you can change a Private account. Owners and Managers can share their own accounts at Team or Company visibility; Members' accounts stay Private. Once an account is shared at Team or Company, a workspace Owner can also change its visibility. If your organization widens visibility, it is responsible for telling the affected members first and for having a lawful basis to do so.
 - Your use of those services stays governed by their terms. We are not responsible for their availability or for changes they make to their APIs.
-- You can disconnect a service at any time. Doing so deletes its imported data from Mimus.
+- You can disconnect a service at any time, even while your workspace's subscription is past due or canceled. Doing so deletes its imported data from Mimus and revokes Mimus's access where the service allows it. Microsoft doesn't let an app revoke only its own access, so remove Mimus from your Microsoft account's app permissions as well; the Mimus Slack app stays installed in a Slack workspace until a Slack admin removes it. See the [Privacy Policy](/privacy).
 - Mimus's use of information received from Google APIs adheres to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including its Limited Use requirements.
 
 ## 5. Acceptable use
@@ -78,8 +79,9 @@ Mimus uses AI (currently provided by OpenAI) to answer questions about your conn
 ## 8. Subscriptions, billing and refunds
 
 - Paid plans are billed in advance on a recurring basis through our payment processor, Stripe, until cancelled. Prices and plan limits are shown at checkout. [TODO: link pricing page]
-- If a payment fails or a subscription lapses, the affected workspace becomes read-only until payment is resolved. Your organization's other workspaces aren't affected.
-- You can cancel at any time. Cancellation takes effect at the end of the current billing period.
+- If a payment fails or a subscription lapses, the affected workspace becomes read-only straight away, with no grace period, until payment is resolved. Your organization's other workspaces aren't affected. While read-only, members can still disconnect services, set accounts back to Private, delete their accounts and manage billing.
+- A workspace Owner can cancel at any time with **Manage or cancel subscription** on the Billing page, which opens Stripe's billing portal. Cancellation takes effect at the end of the current billing period.
+- Plan limits such as seat counts are shown for information and aren't currently enforced by the Service. Choosing a different plan starts a new subscription; cancel the old one in the billing portal so you aren't billed for both.
 - Refunds: [TODO: refund policy, e.g. "Fees are non-refundable except where required by law."]
 - [TODO: free trial terms, if offered]
 - We may change prices with at least [TODO: 30] days' notice before your next billing period.
@@ -118,7 +120,7 @@ If you use the Service for an organization, that organization will defend and in
 
 - You can stop using the Service and delete your account at any time from **Settings → Account**. See the [Privacy Policy](/privacy) for what deletion removes.
 - We may suspend or terminate access if you seriously or repeatedly breach these Terms, if required by law, or to protect the Service or other users. We'll give notice where reasonable.
-- When an account ends, its connected services are disconnected and their imported data is deleted, as described in the Privacy Policy.
+- When an account ends, its connected services are disconnected and their imported data is deleted, as described in the Privacy Policy (including the Microsoft and Slack limits in section 4).
 - Sections 6, 9, 10, 11, 12, 14 and 16 survive termination.
 
 ## 14. Governing law and disputes
@@ -131,7 +133,7 @@ Disputes will be resolved in the state or federal courts located in [TODO: count
 
 ## 15. Changes to these Terms
 
-We may update these Terms. For material changes, we will notify account holders by email or in the app at least [TODO: 30] days before they take effect, and update the effective date above. Continuing to use the Service after that date means you accept the updated Terms.
+We may update these Terms. For material changes, we will notify account holders by email or in the app at least [TODO: 30] days before they take effect, and update the effective date above. Once they take effect, the app asks you to review and accept the updated version before you continue using the Service.
 
 ## 16. General
 
